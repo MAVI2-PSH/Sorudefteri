@@ -799,9 +799,10 @@
     else if(act === 'open-modal') {
       activeEntryId = id;
       document.getElementById('modalDersAdi').textContent = entries[index].ders;
-      document.getElementById('dogruInput').value = entries[index].dogru || '';
-      document.getElementById('yanlisInput').value = entries[index].yanlis || '';
-      document.getElementById('bosInput').value = entries[index].bos || '';
+      // Kutuların her açılışta tertemiz (boş) gelmesini sağlıyoruz
+      document.getElementById('dogruInput').value = '';
+      document.getElementById('yanlisInput').value = '';
+      document.getElementById('bosInput').value = '';
       document.getElementById('modalOverlay').classList.add('open');
     }
   });
@@ -812,7 +813,7 @@
     activeEntryId = null;
   });
 
-  // Modaldaki Verileri Kaydetme
+// Modaldaki Verileri Kaydetme
   document.getElementById('modalSave').addEventListener('click', () => {
     if(!activeEntryId) return;
     const index = entries.findIndex(item => item.id === activeEntryId);
@@ -822,10 +823,16 @@
     const y = parseInt(document.getElementById('yanlisInput').value) || 0;
     const b = parseInt(document.getElementById('bosInput').value) || 0;
 
-    entries[index].dogru = d;
-    entries[index].yanlis = y;
-    entries[index].bos = b;
-    entries[index].cozulen = d + y + b; // Toplam çözülen otomatik hesaplanır.
+    // Yeni girilen değerleri eskilerinin ÜZERİNE ekliyoruz
+    entries[index].dogru = (entries[index].dogru || 0) + d;
+    entries[index].yanlis = (entries[index].yanlis || 0) + y;
+    entries[index].bos = (entries[index].bos || 0) + b;
+    
+    // Toplam çözülen sayısını güncelliyoruz
+    entries[index].cozulen = entries[index].dogru + entries[index].yanlis + entries[index].bos;
+    
+    // Eğer hedefe ulaşıldıysa otomatik tik atılsın istersen şu satırı da ekleyebiliriz:
+    if(entries[index].cozulen >= entries[index].hedef) entries[index].manualDone = true;
 
     saveToCloud();
     document.getElementById('modalOverlay').classList.remove('open');
