@@ -1,6 +1,0 @@
-json
-{
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/weeee.html" }
-  ]
-}
