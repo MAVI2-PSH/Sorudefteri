@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soru Defteri (Bulut Tabanlı)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14181f;
+    --surface: #1b212a;
+    --surface-alt: #212832;
+    --rule: #333c49;
+    --margin: #7a3b3b;
+    --text: #edeae1;
+    --text-dim: #8f98a6;
+    --gold: #d9a94e;
+    --green: #6fbf8b;
+    --green-dim: #3c5747;
+    --error: #cf6666;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:32px 16px 80px;
+  }
+  .page{
+    max-width:640px;
+    margin:0 auto;
+  }
+  
+  /* Auth Card Styling */
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 22px;
+  }
+  .auth-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .auth-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .auth-error {
+    color: var(--error);
+    font-size: 13px;
+    margin-top: 4px;
+    display: none;
+  }
+  .user-info-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-alt);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 22px;
+    border: 1px solid var(--rule);
+  }
+  .user-info-bar span { color: var(--text-dim); }
+  .user-info-bar b { color: var(--gold); }
+  .logout-btn {
+    background: transparent;
+    border: none;
+    color: var(--error);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0;
+  }
+  .logout-btn:hover { text-decoration: underline; }
+
+  /* App Content visibility state */
+  #appContent { display: none; }
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom:28px;
+    border-bottom:1px solid var(--rule);
+    padding-bottom:18px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:32px;
+    margin:0;
+    letter-spacing:-0.5px;
+  }
+  .date-label{
+    font-size:13px;
+    color:var(--text-dim);
+    margin-top:4px;
+    text-transform:capitalize;
+  }
+  .today-total{
+    text-align:right;
+  }
+  .today-total .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:34px;
+    font-weight:600;
+    color:var(--gold);
+    line-height:1;
+  }
+  .today-total .lbl{
+    font-size:11px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+  }
+
+  .card{
+    background:var(--surface);
+    border-radius:10px;
+    border:1px solid var(--rule);
+    margin-bottom:22px;
+    overflow:hidden;
+  }
+  .card-head{
+    padding:14px 18px;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:16px;
+    border-bottom:1px solid var(--rule);
+    color:var(--text);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .card-head select{
+    background:var(--surface-alt);
+    color:var(--text);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:4px 8px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+  }
+
+  .add-form{
+    display:flex;
+    gap:8px;
+    padding:16px 18px;
+  }
+  .add-form input[type=text]{ flex:1; }
+  .add-form input[type=number]{ width:82px; }
+  
+  input[type=text], input[type=number], input[type=email], input[type=password]{
+    background:var(--surface-alt);
+    border:1px solid var(--rule);
+    color:var(--text);
+    border-radius:6px;
+    padding:9px 10px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+  }
+  input::placeholder{color:var(--text-dim);}
+  
+  .btn{
+    background:var(--gold);
+    color:#1b1500;
+    border:none;
+    border-radius:6px;
+    padding:9px 16px;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn.ghost{
+    background:transparent;
+    border:1px solid var(--rule);
+    color:var(--text-dim);
+  }
+
+  .ledger{ position:relative; }
+  .row{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:14px 18px 14px 26px;
+    border-bottom:1px solid var(--rule);
+    background:
+      repeating-linear-gradient(
+        180deg,
+        transparent, transparent 27px,
+        var(--rule) 27px, var(--rule) 28px
+      );
+  }
+  .row::before{
+    content:"";
+    position:absolute;
+    left:14px; top:0; bottom:0;
+    width:1px;
+    background:var(--margin);
+    opacity:0.55;
+  }
+  .row:last-child{border-bottom:none;}
+  .row.done{background-color:rgba(111,191,139,0.06);}
+
+  .check{
+    width:26px;height:26px;
+    border-radius:6px;
+    border:2px solid var(--rule);
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--surface-alt);
+    cursor:pointer;
+  }
+  .check:hover{border-color:var(--gold);}
+  .row.done .check{
+    border-color:var(--green);
+    background:var(--green-dim);
+  }
+  .check svg{
+    width:16px;height:16px;
+    stroke:var(--green);
+    stroke-width:3;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:24;
+    stroke-dashoffset:24;
+    transition:stroke-dashoffset 0.4s ease;
+  }
+  .row.done .check svg{stroke-dashoffset:0;}
+
+  .row-main{flex:1; min-width:0;}
+  .row-name{
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:4px;
+  }
+  .row.done .row-name{color:var(--green);}
+  .progress-bar{
+    height:6px;
+    border-radius:3px;
+    background:var(--surface-alt);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--gold);
+    border-radius:3px;
+    transition:width 0.3s ease;
+  }
+  .row.done .progress-fill{background:var(--green);}
+
+  .counter{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .counter b{color:var(--text);}
+
+  .row-controls{
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .step-btn{
+    width:26px;height:26px;
+    border-radius:6px;
+    border:1px solid var(--rule);
+    background:var(--surface-alt);
+    color:var(--text);
+    cursor:pointer;
+    font-size:14px;
+    line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .step-btn:hover{border-color:var(--gold);}
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--text-dim);
+    cursor:pointer;
+    font-size:16px;
+    padding:2px 6px;
+  }
+  .del-btn:hover{color:var(--margin);}
+
+  .empty{
+    padding:26px 18px;
+    color:var(--text-dim);
+    font-size:14px;
+    text-align:center;
+  }
+
+  .stats-row{
+    display:flex;
+    gap:12px;
+    padding:14px 18px;
+  }
+  .stat{
+    flex:1;
+    background:var(--surface-alt);
+    border-radius:8px;
+    padding:12px;
+    text-align:center;
+  }
+  .stat .num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:20px;
+    font-weight:600;
+    color:var(--gold);
+  }
+  .stat .lbl{
+    font-size:11px;
+    color:var(--text-dim);
+    margin-top:2px;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:12px;
+    margin-top:8px;
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,12,16,0.72);
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:12px;
+    padding:22px;
+    width:100%;
+    max-width:340px;
+  }
+  .modal-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:19px;
+    margin-bottom:4px;
+  }
+  .modal-sub{
+    font-size:13px;
+    color:var(--text-dim);
+    margin-bottom:14px;
+  }
+  .modal input[type=number]{
+    width:100%;
+    font-size:14px;
+    padding:10px;
+    margin-bottom:10px;
+  }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+  }
+
+  @media (max-width:420px){
+    h1{font-size:26px;}
+    .today-total .num{font-size:26px;}
+  }
+  #planDate{
+    background:var(--surface-alt);
+    border:1px solid var(--rule);
+    color:var(--text);
+    border-radius:6px;
+    padding:9px 10px;
+    font-size:14px;
+  }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body>
+<div class="page">
+
+  <!-- AUTH SECTION -->
+  <div id="authContent" class="auth-card">
+    <div class="auth-title">Soru Defteri Bulut Girişi</div>
+    <div class="auth-form">
+      <input type="email" id="authEmail" placeholder="E-posta Adresiniz" required>
+      <input type="password" id="authPassword" placeholder="Şifreniz (En az 6 karakter)" required>
+      <div id="authError" class="auth-error">Hata mesajı</div>
+      <div class="auth-actions">
+        <button class="btn" id="btnLogin">Giriş Yap</button>
+        <button class="btn ghost" id="btnRegister">Kayıt Ol</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTENT -->
+  <div id="appContent">
+    <div class="user-info-bar">
+      <span>Hesap: <b id="userDisplayEmail">...</b></span>
+      <button class="logout-btn" id="btnLogout">Çıkış Yap</button>
+    </div>
+
+    <header>
+      <div>
+        <h1>Soru Defteri</h1>
+        <div class="date-label" id="dateLabel"></div>
+      </div>
+      <div class="today-total">
+        <div class="num" id="todayTotal">0</div>
+        <div class="lbl">bugün çözülen</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="card-head">Bugüne ders ekle</div>
+      <form class="add-form" id="addForm">
+        <input type="text" id="planDate">
+        <input type="text" id="dersInput" placeholder="Ders / konu adı" required>
+        <input type="number" id="hedefInput" placeholder="Hedef" min="1" value="20" required>
+        <button type="submit" class="btn">Ekle</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span>Plan</span>
+        <select id="dateSelect"></select>
+      </div>
+      <div class="ledger" id="ledger">
+        <div class="empty">Yükleniyor veya henüz ders eklenmedi...</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num" id="statPlanned">0</div>
+          <div class="lbl">planlanan ders</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statDone">0</div>
+          <div class="lbl">tamamlanan</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statSolved">0</div>
+          <div class="lbl">çözülen soru</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Verileriniz bulut üzerinde güvenle saklanır, tüm cihazlarınızda anlık eşitlenir.</footer>
+  </div>
+</div>
+
+<!-- MODAL BOX -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalDersAdi">Ders adı</div>
+    <div class="modal-sub" id="modalSub">Yeni eklenen sorular üzerine toplanacaktır.</div>
+    <input type="number" id="dogruInput" placeholder="Doğru sayısı" min="0">
+    <input type="number" id="yanlisInput" placeholder="Yanlış sayısı" min="0">
+    <input type="number" id="bosInput" placeholder="Boş sayısı" min="0">
+    <div class="modal-actions">
+      <button class="btn ghost" id="modalCancel">Vazgeç</button>
+      <button class="btn" id="modalSave">Ekle ve Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE SDKS -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // Gerçek Firebase Yapılandırman
+  const firebaseConfig = {
+    apiKey: "AIzaSyASap2Qi2bG-BOqoZRyOUEbn7Y1dfAwhk0",
+    authDomain: "sorudefteri-d2967.firebaseapp.com",
+    projectId: "sorudefteri-d2967",
+    storageBucket: "sorudefteri-d2967.firebasestorage.app",
+    messagingSenderId: "254512089000",
+    appId: "1:254512089000:web:43a34fd1bf80ed73877f9d"
+  };
+
+  // Firebase Başlatma
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Uygulama Durum Değişkenleri
+  let currentUser = null;
+  let allDates = [];
+  let entries = [];
+  let currentDate = todayKey();
+  let activeEntryId = null;
+  let unsubscribeUserData = null; 
+
+  function todayKey(){
+    const d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function formatDateLabel(key){
+    if(!key) return "";
+    const parts = key.split('-');
+    if(parts.length !== 3) return key;
+    const [y,m,d] = parts.map(Number);
+    const date = new Date(y, m-1, d);
+    return date.toLocaleDateString('tr-TR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+
+  // --- AUTH İŞLEMLERİ ---
+  const authContent = document.getElementById('authContent');
+  const appContent = document.getElementById('appContent');
+  const authError = document.getElementById('authError');
+
+  function showError(msg) {
+    authError.textContent = msg;
+    authError.style.display = 'block';
+  }
+
+  document.getElementById('btnRegister').addEventListener('click', () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    if(!email || !password) return showError("Lütfen tüm alanları doldurun.");
+    
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(() => authError.style.display = 'none')
+      .catch(err => showError("Kayıt hatası: " + err.message));
+  });
+
+  document.getElementById('btnLogin').addEventListener('click', () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    if(!email || !password) return showError("Lütfen tüm alanları doldurun.");
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then(() => authError.style.display = 'none')
+      .catch(err => showError("Giriş hatası: " + err.message));
+  });
+
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    signOut(auth);
+  });
+
+  // Kullanıcı Giriş/Çıkış Kontrolü
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('userDisplayEmail').textContent = user.email;
+      authContent.style.display = 'none';
+      appContent.style.display = 'block';
+      startRealtimeSync();
+    } else {
+      currentUser = null;
+      if(unsubscribeUserData) unsubscribeUserData();
+      authContent.style.display = 'block';
+      appContent.style.display = 'none';
+    }
+  });
+
+  // --- BULUT VERİ SENKRONİZASYONU (REALTIME) ---
+  function startRealtimeSync() {
+    if(!currentUser) return;
+    
+    const userDocRef = doc(db, "users", currentUser.uid);
+    
+    unsubscribeUserData = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        allDates = data.allDates || [todayKey()];
+        if(!allDates.includes(currentDate)) {
+          allDates.push(currentDate);
+        }
+        entries = (data.dataByDate && data.dataByDate[currentDate]) ? data.dataByDate[currentDate] : [];
+      } else {
+        allDates = [todayKey()];
+        entries = [];
+      }
+      render();
+    });
+  }
+
+  async function saveToCloud(updatedEntriesForCurrentDate = entries, updatedDatesList = allDates) {
+    if(!currentUser) return;
+    const userDocRef = doc(db, "users", currentUser.uid);
+    
+    try {
+      const docSnap = await getDoc(userDocRef);
+      let fullDataByDate = {};
+      if(docSnap.exists()){
+        fullDataByDate = docSnap.data().dataByDate || {};
+      }
+      
+      fullDataByDate[currentDate] = updatedEntriesForCurrentDate;
+
+      await setDoc(userDocRef, {
+        allDates: updatedDatesList,
+        dataByDate: fullDataByDate
+      }, { merge: true });
+    } catch(e) {
+      console.error("Buluta kaydedilirken hata oluştu: ", e);
+    }
+  }
+
+  // --- ARAYÜZ YÖNETİMİ ---
+  function populateDateSelect(){
+    const sel = document.getElementById('dateSelect');
+    if(!sel) return;
+    sel.innerHTML = '';
+    const sorted = [...allDates].sort().reverse();
+    sorted.forEach(key=>{
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = key === todayKey() ? 'Bugün — '+key : key;
+      if(key === currentDate) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function render(){
+    document.getElementById('dateLabel').textContent = formatDateLabel(currentDate);
+    const ledger = document.getElementById('ledger');
+    ledger.innerHTML = '';
+
+    if(entries.length === 0){
+      ledger.innerHTML = '<div class="empty">Henüz ders eklenmedi. Yukarıdan bir ders ve hedef soru sayısı ekle.</div>';
+    } else {
+      entries.forEach(entry=>{
+        const done = entry.manualDone === true || entry.cozulen >= entry.hedef;
+        const pct = done ? 100 : Math.min(100, Math.round((entry.cozulen / entry.hedef) * 100));
+        const row = document.createElement('div');
+        row.className = 'row' + (done ? ' done' : '');
+        row.innerHTML = `
+          <div class="check" data-act="toggle" data-id="${entry.id}" title="Elle işaretle / kaldır"><svg viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></svg></div>
+          <div class="row-main">
+            <div class="row-name">${escapeHtml(entry.ders)}</div>
+            <div style="font-size:12px;color:#8f98a6">
+              📌 Toplam: ${entry.cozulen || 0} &nbsp; ✅ Doğru: ${entry.dogru || 0} &nbsp; ❌ Yanlış: ${entry.yanlis || 0} &nbsp; ⭕ Boş: ${entry.bos || 0}
+            </div>
+            <div style="font-size:12px;color:#d9a94e;margin-top:4px">
+              🎯 Hedefe kalan: ${Math.max(0, entry.hedef - entry.cozulen)} soru
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          </div>
+          <div class="counter"><b>${entry.cozulen}</b> / ${entry.hedef}</div>
+          <div class="row-controls">
+            <button class="step-btn" data-act="open-modal" data-id="${entry.id}" title="Soru sayısı gir">✎</button>
+            <button class="step-btn" data-act="minus" data-id="${entry.id}">−</button>
+            <button class="step-btn" data-act="plus" data-id="${entry.id}">+</button>
+            <button class="del-btn" data-act="del" data-id="${entry.id}" title="Sil">✕</button>
+          </div>
+        `;
+        ledger.appendChild(row);
+      });
+    }
+
+    const totalSolvedToday = entries.reduce((s,e)=>s+e.cozulen,0);
+    document.getElementById('todayTotal').textContent = currentDate === todayKey() ? totalSolvedToday : '—';
+    document.getElementById('statPlanned').textContent = entries.length;
+    document.getElementById('statDone').textContent = entries.filter(e => e.manualDone === true || e.cozulen >= e.hedef).length;
+    document.getElementById('statSolved').textContent = totalSolvedToday;
+
+    populateDateSelect();
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // --- EVENT LISTENERS (ETKİLEŞİMLER) ---
+
+  // Tarih Değiştirme Seçicisi
+  document.getElementById('dateSelect').addEventListener('change', (e) => {
+    currentDate = e.target.value;
+    startRealtimeSync();
+  });
+
+  // Flatpickr Takvim Kurulumu
+  const fp = flatpickr("#planDate", {
+    defaultDate: "today",
+    dateFormat: "Y-m-d",
+    onChange: function(selectedDates, dateStr) {
+      currentDate = dateStr;
+      if(!allDates.includes(currentDate)){
+        allDates.push(currentDate);
+      }
+      startRealtimeSync();
+    }
+  });
+
+  // Yeni Ders Ekleme Formu
+  document.getElementById('addForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const dersAd = document.getElementById('dersInput').value.trim();
+    const hedefSayi = parseInt(document.getElementById('hedefInput').value) || 20;
+    
+    if(!dersAd) return;
+
+    const newEntry = {
+      id: 'e_' + Date.now(),
+      ders: dersAd,
+      hedef: hedefSayi,
+      cozulen: 0,
+      dogru: 0,
+      yanlis: 0,
+      bos: 0,
+      manualDone: false
+    };
+
+    entries.push(newEntry);
+    document.getElementById('dersInput').value = '';
+    saveToCloud();
+  });
+
+  // Liste Elemanlarının Buton İşlevleri (Sil, Artı, Eksi, Manuel Check, Modal Aç)
+  document.getElementById('ledger').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-act]');
+    if(!btn) return;
+
+    const act = btn.getAttribute('data-act');
+    const id = btn.getAttribute('data-id');
+    const index = entries.findIndex(item => item.id === id);
+    if(index === -1) return;
+
+    if(act === 'del') {
+      if(confirm('Bu dersi silmek istediğinize emin misiniz?')) {
+        entries.splice(index, 1);
+        saveToCloud();
+      }
+    } 
+    else if(act === 'plus') {
+      entries[index].cozulen += 1;
+      saveToCloud();
+    } 
+    else if(act === 'minus') {
+      if(entries[index].cozulen > 0) {
+        entries[index].cozulen -= 1;
+        saveToCloud();
+      }
+    } 
+    else if(act === 'toggle') {
+      const entry = entries[index];
+      const isCurrentlyDone = entry.manualDone || entry.cozulen >= entry.hedef;
+
+      if (!isCurrentlyDone) {
+        // Tik basıldığında: Tüm hedefler doğru çözülmüş olarak kaydedilir
+        entry.dogru = entry.hedef;
+        entry.yanlis = 0;
+        entry.bos = 0;
+        entry.cozulen = entry.hedef;
+        entry.manualDone = true;
+      } else {
+        // Tik kaldırıldığında: Değerler sıfırlanır
+        entry.dogru = 0;
+        entry.yanlis = 0;
+        entry.bos = 0;
+        entry.cozulen = 0;
+        entry.manualDone = false;
+      }
+
+      saveToCloud();
+    }
+    else if(act === 'open-modal') {
+      activeEntryId = id;
+      document.getElementById('modalDersAdi').textContent = entries[index].ders;
+      document.getElementById('dogruInput').value = entries[index].dogru || '';
+      document.getElementById('yanlisInput').value = entries[index].yanlis || '';
+      document.getElementById('bosInput').value = entries[index].bos || '';
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+  });
+
+  // Modal Kapatma
+  document.getElementById('modalCancel').addEventListener('click', () => {
+    document.getElementById('modalOverlay').classList.remove('open');
+    activeEntryId = null;
+  });
+
+  // Modaldaki Verileri Kaydetme
+  document.getElementById('modalSave').addEventListener('click', () => {
+    if(!activeEntryId) return;
+    const index = entries.findIndex(item => item.id === activeEntryId);
+    if(index === -1) return;
+
+    const d = parseInt(document.getElementById('dogruInput').value) || 0;
+    const y = parseInt(document.getElementById('yanlisInput').value) || 0;
+    const b = parseInt(document.getElementById('bosInput').value) || 0;
+
+    entries[index].dogru = d;
+    entries[index].yanlis = y;
+    entries[index].bos = b;
+    entries[index].cozulen = d + y + b; // Toplam çözülen otomatik hesaplanır.
+
+    saveToCloud();
+    document.getElementById('modalOverlay').classList.remove('open');
+    activeEntryId = null;
+  });
+</script>
+</body>
+</html>
