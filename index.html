@@ -438,12 +438,13 @@
 
     <div class="card">
       <div class="card-head">Bugüne ders ekle</div>
-      <form class="add-form" id="addForm">
-        <input type="text" id="planDate">
-        <input type="text" id="dersInput" placeholder="Ders / konu adı" required>
-        <input type="number" id="hedefInput" placeholder="Hedef" min="1" value="20" required>
-        <button type="submit" class="btn">Ekle</button>
-      </form>
+     <form class="add-form" id="addForm">
+  <input type="text" id="planDate">
+  <input type="text" id="dersInput" placeholder="Ders / konu adı" list="dersListesi" required autocomplete="off">
+  <datalist id="dersListesi"></datalist>
+  <input type="number" id="hedefInput" placeholder="Hedef" min="1" value="20" required>
+  <button type="submit" class="btn">Ekle</button>
+</form>
     </div>
 
     <div class="card">
@@ -636,6 +637,29 @@
     } catch(e) {
       console.error("Buluta kaydedilirken hata oluştu: ", e);
     }
+function updateDersDatalist() {
+    const datalist = document.getElementById('dersListesi');
+    if (!datalist) return;
+    datalist.innerHTML = '';
+
+    // Daha önce girilmiş tüm benzersiz ders isimlerini topla
+    const existingLessons = new Set();
+    
+    // Varsayılan öneriler (isteğe bağlı eklenebilir)
+    const defaults = ["Matematik", "Fizik", "Kimya", "Biyoloji", "Geometri", "Türk Dili ve Edebiyatı", "Tarih", "Coğrafya", "İngilizce"];
+    defaults.forEach(d => existingLessons.add(d));
+
+    // Kullanıcının daha önce kaydettiği tüm günlerdeki ders adlarını ekle
+    entries.forEach(e => {
+      if (e.ders) existingLessons.add(e.ders);
+    });
+
+    existingLessons.forEach(dersAd => {
+      const option = document.createElement('option');
+      option.value = dersAd;
+      datalist.appendChild(option);
+    });
+  }
   }
 
   // --- ARAYÜZ YÖNETİMİ ---
@@ -697,6 +721,7 @@
     document.getElementById('statSolved').textContent = totalSolvedToday;
 
     populateDateSelect();
+    updateDersDatalist();
   }
 
   function escapeHtml(str){
