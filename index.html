@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Soru Defteri (Bulut Tabanlı)</title>
-<!-- Özel Tasarım Altın Soru Defteri Simgesi -->
+<!-- Favicon (Tarayıcı Simgesi) -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d9a94e'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -438,13 +438,13 @@
 
     <div class="card">
       <div class="card-head">Bugüne ders ekle</div>
-     <form class="add-form" id="addForm">
-  <input type="text" id="planDate">
-  <input type="text" id="dersInput" placeholder="Ders / konu adı" list="dersListesi" required autocomplete="off">
-  <datalist id="dersListesi"></datalist>
-  <input type="number" id="hedefInput" placeholder="Hedef" min="1" value="20" required>
-  <button type="submit" class="btn">Ekle</button>
-</form>
+      <form class="add-form" id="addForm">
+        <input type="text" id="planDate">
+        <input type="text" id="dersInput" placeholder="Ders / konu adı" list="dersListesi" required autocomplete="off">
+        <datalist id="dersListesi"></datalist>
+        <input type="number" id="hedefInput" placeholder="Hedef" min="1" value="20" required>
+        <button type="submit" class="btn">Ekle</button>
+      </form>
     </div>
 
     <div class="card">
@@ -637,29 +637,6 @@
     } catch(e) {
       console.error("Buluta kaydedilirken hata oluştu: ", e);
     }
-function updateDersDatalist() {
-    const datalist = document.getElementById('dersListesi');
-    if (!datalist) return;
-    datalist.innerHTML = '';
-
-    // Daha önce girilmiş tüm benzersiz ders isimlerini topla
-    const existingLessons = new Set();
-    
-    // Varsayılan öneriler (isteğe bağlı eklenebilir)
-    const defaults = ["Matematik", "Fizik", "Kimya", "Biyoloji", "Geometri", "Türk Dili ve Edebiyatı", "Tarih", "Coğrafya", "İngilizce"];
-    defaults.forEach(d => existingLessons.add(d));
-
-    // Kullanıcının daha önce kaydettiği tüm günlerdeki ders adlarını ekle
-    entries.forEach(e => {
-      if (e.ders) existingLessons.add(e.ders);
-    });
-
-    existingLessons.forEach(dersAd => {
-      const option = document.createElement('option');
-      option.value = dersAd;
-      datalist.appendChild(option);
-    });
-  }
   }
 
   // --- ARAYÜZ YÖNETİMİ ---
@@ -674,6 +651,26 @@ function updateDersDatalist() {
       opt.textContent = key === todayKey() ? 'Bugün — '+key : key;
       if(key === currentDate) opt.selected = true;
       sel.appendChild(opt);
+    });
+  }
+
+  function updateDersDatalist() {
+    const datalist = document.getElementById('dersListesi');
+    if (!datalist) return;
+    datalist.innerHTML = '';
+
+    const existingLessons = new Set();
+    const defaults = ["Matematik", "Fizik", "Kimya", "Biyoloji", "Geometri", "Türk Dili ve Edebiyatı", "Tarih", "Coğrafya", "İngilizce"];
+    defaults.forEach(d => existingLessons.add(d));
+
+    entries.forEach(e => {
+      if (e.ders) existingLessons.add(e.ders);
+    });
+
+    existingLessons.forEach(dersAd => {
+      const option = document.createElement('option');
+      option.value = dersAd;
+      datalist.appendChild(option);
     });
   }
 
@@ -775,7 +772,7 @@ function updateDersDatalist() {
     saveToCloud();
   });
 
-  // Liste Elemanlarının Buton İşlevleri (Sil, Artı, Eksi, Manuel Check, Modal Aç)
+  // Liste Elemanlarının Buton İşlevleri
   document.getElementById('ledger').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-act]');
     if(!btn) return;
@@ -793,11 +790,13 @@ function updateDersDatalist() {
     } 
     else if(act === 'plus') {
       entries[index].cozulen += 1;
+      entries[index].dogru += 1;
       saveToCloud();
     } 
     else if(act === 'minus') {
       if(entries[index].cozulen > 0) {
         entries[index].cozulen -= 1;
+        if(entries[index].dogru > 0) entries[index].dogru -= 1;
         saveToCloud();
       }
     } 
@@ -806,14 +805,12 @@ function updateDersDatalist() {
       const isCurrentlyDone = entry.manualDone || entry.cozulen >= entry.hedef;
 
       if (!isCurrentlyDone) {
-        // Tik basıldığında: Tüm hedefler doğru çözülmüş olarak kaydedilir
         entry.dogru = entry.hedef;
         entry.yanlis = 0;
         entry.bos = 0;
         entry.cozulen = entry.hedef;
         entry.manualDone = true;
       } else {
-        // Tik kaldırıldığında: Değerler sıfırlanır
         entry.dogru = 0;
         entry.yanlis = 0;
         entry.bos = 0;
@@ -822,11 +819,10 @@ function updateDersDatalist() {
       }
 
       saveToCloud();
-    }
+    } 
     else if(act === 'open-modal') {
       activeEntryId = id;
       document.getElementById('modalDersAdi').textContent = entries[index].ders;
-      // Kutuların her açılışta tertemiz (boş) gelmesini sağlıyoruz
       document.getElementById('dogruInput').value = '';
       document.getElementById('yanlisInput').value = '';
       document.getElementById('bosInput').value = '';
@@ -840,7 +836,7 @@ function updateDersDatalist() {
     activeEntryId = null;
   });
 
-// Modaldaki Verileri Kaydetme
+  // Modaldaki Verileri Kaydetme (Mevcutların üzerine ekler)
   document.getElementById('modalSave').addEventListener('click', () => {
     if(!activeEntryId) return;
     const index = entries.findIndex(item => item.id === activeEntryId);
@@ -850,15 +846,11 @@ function updateDersDatalist() {
     const y = parseInt(document.getElementById('yanlisInput').value) || 0;
     const b = parseInt(document.getElementById('bosInput').value) || 0;
 
-    // Yeni girilen değerleri eskilerinin ÜZERİNE ekliyoruz
     entries[index].dogru = (entries[index].dogru || 0) + d;
     entries[index].yanlis = (entries[index].yanlis || 0) + y;
     entries[index].bos = (entries[index].bos || 0) + b;
-    
-    // Toplam çözülen sayısını güncelliyoruz
     entries[index].cozulen = entries[index].dogru + entries[index].yanlis + entries[index].bos;
-    
-    // Eğer hedefe ulaşıldıysa otomatik tik atılsın istersen şu satırı da ekleyebiliriz:
+
     if(entries[index].cozulen >= entries[index].hedef) entries[index].manualDone = true;
 
     saveToCloud();
