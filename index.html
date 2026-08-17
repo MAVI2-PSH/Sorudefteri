@@ -661,7 +661,6 @@
     datalist.innerHTML = '';
 
     const existingLessons = new Set();
-    // TYT Deneme'yi en başa ekledik
     const defaults = ["TYT Deneme", "Matematik", "Fizik", "Kimya", "Biyoloji", "Geometri", "Türk Dili ve Edebiyatı", "Tarih", "Coğrafya", "İngilizce"];
     defaults.forEach(d => existingLessons.add(d));
 
@@ -754,8 +753,9 @@
     
     if(!dersAd) return;
 
-    // TYT Deneme Algılayıcı Sistemi
-    if (dersAd.toLowerCase() === "tyt deneme") {
+    // TYT Deneme Algılayıcı Sistemi (Esnek)
+    const kucukHarfDers = dersAd.toLowerCase();
+    if (kucukHarfDers.includes("tyt deneme") || kucukHarfDers === "tyt") {
       const tytDersleri = [
         { ad: "TYT Türkçe", hedef: 40 },
         { ad: "TYT Sosyal", hedef: 20 },
@@ -792,6 +792,11 @@
     }
 
     document.getElementById('dersInput').value = '';
+    
+    // Değişikliklerin anında ekranda görünmesini sağlar
+    render(); 
+    
+    // Ardından buluta kaydeder
     saveToCloud();
   });
 
