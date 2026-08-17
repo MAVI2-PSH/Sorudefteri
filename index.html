@@ -271,6 +271,7 @@
     border-radius:3px;
     background:var(--surface-alt);
     overflow:hidden;
+    margin-top:6px;
   }
   .progress-fill{
     height:100%;
@@ -370,29 +371,36 @@
     border-radius:12px;
     padding:22px;
     width:100%;
-    max-width:340px;
+    max-width:360px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
   }
   .modal-title{
     font-family:'Fraunces',serif;
     font-weight:600;
     font-size:19px;
-    margin-bottom:4px;
   }
   .modal-sub{
     font-size:13px;
     color:var(--text-dim);
-    margin-bottom:14px;
+    margin-top:4px;
+    margin-bottom:2px;
   }
-  .modal input[type=number]{
+  .modal label {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .modal input[type=text], .modal input[type=number]{
     width:100%;
     font-size:14px;
-    padding:10px;
-    margin-bottom:10px;
+    padding:8px 10px;
   }
   .modal-actions{
     display:flex;
     gap:10px;
     justify-content:flex-end;
+    margin-top:10px;
   }
 
   @media (max-width:420px){
@@ -422,8 +430,8 @@
       <input type="password" id="authPassword" placeholder="Şifreniz (En az 6 karakter)" required>
       <div id="authError" class="auth-error">Hata mesajı</div>
       <div class="auth-actions">
-        <button class="btn" id="btnLogin">Giriş Yap</button>
-        <button class="btn ghost" id="btnRegister">Kayıt Ol</button>
+        <button class="btn" id="btnLogin" type="button">Giriş Yap</button>
+        <button class="btn ghost" id="btnRegister" type="button">Kayıt Ol</button>
       </div>
     </div>
   </div>
@@ -432,7 +440,7 @@
   <div id="appContent">
     <div class="user-info-bar">
       <span>Hesap: <b id="userDisplayEmail">...</b></span>
-      <button class="logout-btn" id="btnLogout">Çıkış Yap</button>
+      <button class="logout-btn" id="btnLogout" type="button">Çıkış Yap</button>
     </div>
 
     <header>
@@ -465,6 +473,8 @@
       <div class="ledger" id="ledger">
         <div class="empty">Yükleniyor veya henüz ders eklenmedi...</div>
       </div>
+      
+      <!-- GENEL DERS İSTATİSTİKLERİ -->
       <div class="stats-row">
         <div class="stat">
           <div class="num" id="statPlanned">0</div>
@@ -479,25 +489,55 @@
           <div class="lbl">çözülen soru</div>
         </div>
       </div>
+
+      <!-- TOPLAM DOĞRU, YANLIŞ VE BOŞ ÖZETİ -->
+      <div class="stats-row" style="padding-top:0;">
+        <div class="stat">
+          <div class="num" id="statDogru" style="color:var(--green)">0</div>
+          <div class="lbl">toplam doğru</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statYanlis" style="color:var(--error)">0</div>
+          <div class="lbl">toplam yanlış</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statBos">0</div>
+          <div class="lbl">toplam boş</div>
+        </div>
+      </div>
+
     </div>
 
     <footer>Verileriniz bulut üzerinde güvenle saklanır, tüm cihazlarınızda anlık eşitlenir.</footer>
   </div>
 </div>
 
-<!-- MODAL BOX -->
+<!-- DERS VE DÜRÜM DÜZENLEME MODALI -->
 <div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-title" id="modalDersAdi">Ders adı</div>
-    <div class="modal-sub" id="modalSub">Yeni eklenen sorular üzerine toplanacaktır.</div>
-    <input type="number" id="dogruInput" placeholder="Doğru sayısı" min="0">
-    <input type="number" id="yanlisInput" placeholder="Yanlış sayısı" min="0">
-    <input type="number" id="bosInput" placeholder="Boş sayısı" min="0">
+  <form class="modal" id="modalForm">
+    <div class="modal-title">Dersi Düzenle</div>
+    
+    <label>Ders / Konu Adı</label>
+    <input type="text" id="editDersInput" required>
+
+    <label>Hedef Soru Sayısı</label>
+    <input type="number" id="editHedefInput" min="1" required>
+
+    <hr style="border:0; border-top:1px solid var(--rule); margin: 6px 0;">
+
+    <div class="modal-sub">Çözülen Soru Detayları:</div>
+    <label>Doğru Sayısı</label>
+    <input type="number" id="dogruInput" placeholder="0" min="0">
+    <label>Yanlış Sayısı</label>
+    <input type="number" id="yanlisInput" placeholder="0" min="0">
+    <label>Boş Sayısı</label>
+    <input type="number" id="bosInput" placeholder="0" min="0">
+    
     <div class="modal-actions">
-      <button class="btn ghost" id="modalCancel">Vazgeç</button>
-      <button class="btn" id="modalSave">Ekle ve Kaydet</button>
+      <button type="button" class="btn ghost" id="modalCancel">Vazgeç</button>
+      <button type="submit" class="btn" id="modalSave">Kaydet</button>
     </div>
-  </div>
+  </form>
 </div>
 
 <!-- FIREBASE SDKS & APP SCRIPT -->
@@ -532,6 +572,7 @@
 
   let currentUser = null;
   let allDates = [];
+  let dataByDateMap = {};
   let entries = [];
   let currentDate = todayKey();
   let activeEntryId = null;
@@ -614,26 +655,30 @@
       if (docSnap.exists()) {
         const data = docSnap.data();
         allDates = data.allDates || [todayKey()];
+        dataByDateMap = data.dataByDate || {};
         if(!allDates.includes(currentDate)) {
           allDates.push(currentDate);
         }
-        entries = (data.dataByDate && data.dataByDate[currentDate]) ? data.dataByDate[currentDate] : [];
+        entries = dataByDateMap[currentDate] || [];
       } else {
         allDates = [todayKey()];
+        dataByDateMap = {};
         entries = [];
       }
       render();
     });
   }
 
-  async function saveToCloud(updatedEntriesForCurrentDate = entries, updatedDatesList = allDates) {
+  async function saveToCloud() {
     if(!currentUser) return;
     const userDocRef = doc(db, "users", currentUser.uid);
     
+    dataByDateMap[currentDate] = entries;
+
     try {
       await setDoc(userDocRef, {
-        allDates: updatedDatesList,
-        [`dataByDate.${currentDate}`]: updatedEntriesForCurrentDate
+        allDates: allDates,
+        dataByDate: dataByDateMap
       }, { merge: true });
     } catch(e) {
       console.error("Buluta kaydedilirken hata oluştu: ", e);
@@ -702,21 +747,34 @@
           </div>
           <div class="counter"><b>${entry.cozulen}</b> / ${entry.hedef}</div>
           <div class="row-controls">
-            <button class="step-btn" data-act="open-modal" data-id="${entry.id}" title="Soru sayısı gir">✎</button>
-            <button class="step-btn" data-act="minus" data-id="${entry.id}">−</button>
-            <button class="step-btn" data-act="plus" data-id="${entry.id}">+</button>
-            <button class="del-btn" data-act="del" data-id="${entry.id}" title="Sil">✕</button>
+            <button type="button" class="step-btn" data-act="open-modal" data-id="${entry.id}" title="Düzenle">✎</button>
+            <button type="button" class="step-btn" data-act="minus" data-id="${entry.id}">−</button>
+            <button type="button" class="step-btn" data-act="plus" data-id="${entry.id}">+</button>
+            <button type="button" class="del-btn" data-act="del" data-id="${entry.id}" title="Sil">✕</button>
           </div>
         `;
         ledger.appendChild(row);
       });
     }
 
-    const totalSolvedToday = entries.reduce((s,e)=>s+e.cozulen,0);
+    // Toplam İstatistik Hesaplamaları
+    const totalSolvedToday = entries.reduce((s,e) => s + (e.cozulen || 0), 0);
+    const totalDogruToday = entries.reduce((s,e) => s + (e.dogru || 0), 0);
+    const totalYanlisToday = entries.reduce((s,e) => s + (e.yanlis || 0), 0);
+    const totalBosToday = entries.reduce((s,e) => s + (e.bos || 0), 0);
+
+    // Üst Başlık
     document.getElementById('todayTotal').textContent = currentDate === todayKey() ? totalSolvedToday : '—';
+    
+    // Alt Özet Kartları
     document.getElementById('statPlanned').textContent = entries.length;
     document.getElementById('statDone').textContent = entries.filter(e => e.manualDone === true || e.cozulen >= e.hedef).length;
     document.getElementById('statSolved').textContent = totalSolvedToday;
+
+    // Doğru, Yanlış ve Boş Sayılarının Güncellenmesi
+    document.getElementById('statDogru').textContent = totalDogruToday;
+    document.getElementById('statYanlis').textContent = totalYanlisToday;
+    document.getElementById('statBos').textContent = totalBosToday;
 
     populateDateSelect();
     updateDersDatalist();
@@ -731,7 +789,8 @@
   // --- ETKİLEŞİMLER ---
   document.getElementById('dateSelect').addEventListener('change', (e) => {
     currentDate = e.target.value;
-    startRealtimeSync();
+    entries = dataByDateMap[currentDate] || [];
+    render();
   });
 
   const fp = flatpickr("#planDate", {
@@ -742,7 +801,8 @@
       if(!allDates.includes(currentDate)){
         allDates.push(currentDate);
       }
-      startRealtimeSync();
+      entries = dataByDateMap[currentDate] || [];
+      render();
     }
   });
 
@@ -753,14 +813,17 @@
     
     if(!dersAd) return;
 
-    // TYT Deneme Algılayıcı Sistemi (Esnek)
+    // TYT Deneme Algılayıcı Sistemi
     const kucukHarfDers = dersAd.toLowerCase();
-    if (kucukHarfDers.includes("tyt deneme") || kucukHarfDers === "tyt") {
+    if ((kucukHarfDers.includes("tyt") && kucukHarfDers.includes("deneme")) || kucukHarfDers === "tyt") {
+      const ekIsim = dersAd.replace(/\b(tyt|deneme|denemesi)\b/gi, '').trim().replace(/\s+/g, ' ');
+      const suffix = ekIsim ? ' ' + ekIsim : '';
+
       const tytDersleri = [
-        { ad: "TYT Türkçe", hedef: 40 },
-        { ad: "TYT Sosyal", hedef: 20 },
-        { ad: "TYT Matematik", hedef: 40 },
-        { ad: "TYT Fen", hedef: 20 }
+        { ad: "TYT Türkçe" + suffix, hedef: 40 },
+        { ad: "TYT Sosyal" + suffix, hedef: 20 },
+        { ad: "TYT Matematik" + suffix, hedef: 40 },
+        { ad: "TYT Fen" + suffix, hedef: 20 }
       ];
 
       const now = Date.now();
@@ -792,11 +855,7 @@
     }
 
     document.getElementById('dersInput').value = '';
-    
-    // Değişikliklerin anında ekranda görünmesini sağlar
     render(); 
-    
-    // Ardından buluta kaydeder
     saveToCloud();
   });
 
@@ -812,18 +871,23 @@
     if(act === 'del') {
       if(confirm('Bu dersi silmek istediğinize emin misiniz?')) {
         entries.splice(index, 1);
+        render();
         saveToCloud();
       }
     } 
     else if(act === 'plus') {
       entries[index].cozulen += 1;
-      entries[index].dogru += 1;
+      entries[index].dogru = (entries[index].dogru || 0) + 1;
+      render();
       saveToCloud();
     } 
     else if(act === 'minus') {
       if(entries[index].cozulen > 0) {
         entries[index].cozulen -= 1;
         if(entries[index].dogru > 0) entries[index].dogru -= 1;
+        else if(entries[index].yanlis > 0) entries[index].yanlis -= 1;
+        else if(entries[index].bos > 0) entries[index].bos -= 1;
+        render();
         saveToCloud();
       }
     } 
@@ -845,15 +909,18 @@
         entry.manualDone = false;
       }
 
+      render();
       saveToCloud();
     } 
     else if(act === 'open-modal') {
       activeEntryId = id;
-      document.getElementById('modalDersAdi').textContent = entries[index].ders;
-      document.getElementById('dogruInput').value = '';
-      document.getElementById('yanlisInput').value = '';
-      document.getElementById('bosInput').value = '';
+      document.getElementById('editDersInput').value = entries[index].ders;
+      document.getElementById('editHedefInput').value = entries[index].hedef;
+      document.getElementById('dogruInput').value = entries[index].dogru || 0;
+      document.getElementById('yanlisInput').value = entries[index].yanlis || 0;
+      document.getElementById('bosInput').value = entries[index].bos || 0;
       document.getElementById('modalOverlay').classList.add('open');
+      document.getElementById('editDersInput').focus();
     }
   });
 
@@ -862,22 +929,34 @@
     activeEntryId = null;
   });
 
-  document.getElementById('modalSave').addEventListener('click', () => {
+  document.getElementById('modalForm').addEventListener('submit', (e) => {
+    e.preventDefault();
     if(!activeEntryId) return;
     const index = entries.findIndex(item => item.id === activeEntryId);
     if(index === -1) return;
 
+    const yeniDersAdi = document.getElementById('editDersInput').value.trim();
+    const yeniHedef = Math.max(1, parseInt(document.getElementById('editHedefInput').value) || 20);
     const d = Math.max(0, parseInt(document.getElementById('dogruInput').value) || 0);
     const y = Math.max(0, parseInt(document.getElementById('yanlisInput').value) || 0);
     const b = Math.max(0, parseInt(document.getElementById('bosInput').value) || 0);
 
-    entries[index].dogru = (entries[index].dogru || 0) + d;
-    entries[index].yanlis = (entries[index].yanlis || 0) + y;
-    entries[index].bos = (entries[index].bos || 0) + b;
-    entries[index].cozulen = entries[index].dogru + entries[index].yanlis + entries[index].bos;
+    if(yeniDersAdi) {
+      entries[index].ders = yeniDersAdi;
+    }
+    entries[index].hedef = yeniHedef;
+    entries[index].dogru = d;
+    entries[index].yanlis = y;
+    entries[index].bos = b;
+    entries[index].cozulen = d + y + b;
 
-    if(entries[index].cozulen >= entries[index].hedef) entries[index].manualDone = true;
+    if(entries[index].cozulen >= entries[index].hedef) {
+      entries[index].manualDone = true;
+    } else {
+      entries[index].manualDone = false;
+    }
 
+    render();
     saveToCloud();
     document.getElementById('modalOverlay').classList.remove('open');
     activeEntryId = null;
