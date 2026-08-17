@@ -449,7 +449,7 @@
     <div class="card">
       <div class="card-head">Bugüne ders ekle</div>
       <form class="add-form" id="addForm">
-        <input type="text" id="planDate">
+        <input type="text" id="planDate" style="width:110px;">
         <input type="text" id="dersInput" placeholder="Ders / konu adı" list="dersListesi" required autocomplete="off">
         <datalist id="dersListesi"></datalist>
         <input type="number" id="hedefInput" placeholder="Hedef" min="1" value="20" required>
@@ -604,7 +604,6 @@
   function startRealtimeSync() {
     if(!currentUser) return;
     
-    // Eski listener varsa sonlandırılarak bellek sızıntısı engellenir
     if(unsubscribeUserData) {
       unsubscribeUserData();
     }
@@ -632,7 +631,6 @@
     const userDocRef = doc(db, "users", currentUser.uid);
     
     try {
-      // Veri çakışmasını engelleyen atomic update yapısı
       await setDoc(userDocRef, {
         allDates: updatedDatesList,
         [`dataByDate.${currentDate}`]: updatedEntriesForCurrentDate
@@ -663,11 +661,12 @@
     datalist.innerHTML = '';
 
     const existingLessons = new Set();
-    const defaults = ["Matematik", "Fizik", "Kimya", "Biyoloji", "Geometri", "Türk Dili ve Edebiyatı", "Tarih", "Coğrafya", "İngilizce"];
+    // TYT Deneme'yi en başa ekledik
+    const defaults = ["TYT Deneme", "Matematik", "Fizik", "Kimya", "Biyoloji", "Geometri", "Türk Dili ve Edebiyatı", "Tarih", "Coğrafya", "İngilizce"];
     defaults.forEach(d => existingLessons.add(d));
 
     entries.forEach(e => {
-      if (e.ders) existingLessons.add(e.ders);
+      if (e.ders && !e.ders.startsWith("TYT ")) existingLessons.add(e.ders);
     });
 
     existingLessons.forEach(dersAd => {
@@ -755,18 +754,43 @@
     
     if(!dersAd) return;
 
-    const newEntry = {
-      id: 'e_' + Date.now(),
-      ders: dersAd,
-      hedef: hedefSayi,
-      cozulen: 0,
-      dogru: 0,
-      yanlis: 0,
-      bos: 0,
-      manualDone: false
-    };
+    // TYT Deneme Algılayıcı Sistemi
+    if (dersAd.toLowerCase() === "tyt deneme") {
+      const tytDersleri = [
+        { ad: "TYT Türkçe", hedef: 40 },
+        { ad: "TYT Sosyal", hedef: 20 },
+        { ad: "TYT Matematik", hedef: 40 },
+        { ad: "TYT Fen", hedef: 20 }
+      ];
 
-    entries.push(newEntry);
+      const now = Date.now();
+      tytDersleri.forEach((d, index) => {
+        entries.push({
+          id: 'e_' + now + '_' + index,
+          ders: d.ad,
+          hedef: d.hedef,
+          cozulen: 0,
+          dogru: 0,
+          yanlis: 0,
+          bos: 0,
+          manualDone: false
+        });
+      });
+    } else {
+      // Normal ders ekleme
+      const newEntry = {
+        id: 'e_' + Date.now(),
+        ders: dersAd,
+        hedef: hedefSayi,
+        cozulen: 0,
+        dogru: 0,
+        yanlis: 0,
+        bos: 0,
+        manualDone: false
+      };
+      entries.push(newEntry);
+    }
+
     document.getElementById('dersInput').value = '';
     saveToCloud();
   });
