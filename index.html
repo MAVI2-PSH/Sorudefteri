@@ -500,7 +500,7 @@
   </div>
 </div>
 
-<!-- FIREBASE SDKS -->
+<!-- FIREBASE SDKS & APP SCRIPT -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { 
@@ -514,11 +514,9 @@
     getFirestore, 
     doc, 
     setDoc, 
-    getDoc, 
     onSnapshot 
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // Gerçek Firebase Yapılandırman
   const firebaseConfig = {
     apiKey: "AIzaSyASap2Qi2bG-BOqoZRyOUEbn7Y1dfAwhk0",
     authDomain: "sorudefteri-d2967.firebaseapp.com",
@@ -528,12 +526,10 @@
     appId: "1:254512089000:web:43a34fd1bf80ed73877f9d"
   };
 
-  // Firebase Başlatma
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Uygulama Durum Değişkenleri
   let currentUser = null;
   let allDates = [];
   let entries = [];
@@ -589,7 +585,6 @@
     signOut(auth);
   });
 
-  // Kullanıcı Giriş/Çıkış Kontrolü
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
@@ -605,9 +600,14 @@
     }
   });
 
-  // --- BULUT VERİ SENKRONİZASYONU (REALTIME) ---
+  // --- BULUT VERİ SENKRONİZASYONU ---
   function startRealtimeSync() {
     if(!currentUser) return;
+    
+    // Eski listener varsa sonlandırılarak bellek sızıntısı engellenir
+    if(unsubscribeUserData) {
+      unsubscribeUserData();
+    }
     
     const userDocRef = doc(db, "users", currentUser.uid);
     
@@ -632,17 +632,10 @@
     const userDocRef = doc(db, "users", currentUser.uid);
     
     try {
-      const docSnap = await getDoc(userDocRef);
-      let fullDataByDate = {};
-      if(docSnap.exists()){
-        fullDataByDate = docSnap.data().dataByDate || {};
-      }
-      
-      fullDataByDate[currentDate] = updatedEntriesForCurrentDate;
-
+      // Veri çakışmasını engelleyen atomic update yapısı
       await setDoc(userDocRef, {
         allDates: updatedDatesList,
-        dataByDate: fullDataByDate
+        [`dataByDate.${currentDate}`]: updatedEntriesForCurrentDate
       }, { merge: true });
     } catch(e) {
       console.error("Buluta kaydedilirken hata oluştu: ", e);
@@ -654,7 +647,7 @@
     const sel = document.getElementById('dateSelect');
     if(!sel) return;
     sel.innerHTML = '';
-    const sorted = [...allDates].sort().reverse();
+    const sorted = [...new Set(allDates)].sort().reverse();
     sorted.forEach(key=>{
       const opt = document.createElement('option');
       opt.value = key;
@@ -737,15 +730,12 @@
     return div.innerHTML;
   }
 
-  // --- EVENT LISTENERS (ETKİLEŞİMLER) ---
-
-  // Tarih Değiştirme Seçicisi
+  // --- ETKİLEŞİMLER ---
   document.getElementById('dateSelect').addEventListener('change', (e) => {
     currentDate = e.target.value;
     startRealtimeSync();
   });
 
-  // Flatpickr Takvim Kurulumu
   const fp = flatpickr("#planDate", {
     defaultDate: "today",
     dateFormat: "Y-m-d",
@@ -758,11 +748,10 @@
     }
   });
 
-  // Yeni Ders Ekleme Formu
   document.getElementById('addForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const dersAd = document.getElementById('dersInput').value.trim();
-    const hedefSayi = parseInt(document.getElementById('hedefInput').value) || 20;
+    const hedefSayi = Math.max(1, parseInt(document.getElementById('hedefInput').value) || 20);
     
     if(!dersAd) return;
 
@@ -782,7 +771,6 @@
     saveToCloud();
   });
 
-  // Liste Elemanlarının Buton İşlevleri
   document.getElementById('ledger').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-act]');
     if(!btn) return;
@@ -840,21 +828,19 @@
     }
   });
 
-  // Modal Kapatma
   document.getElementById('modalCancel').addEventListener('click', () => {
     document.getElementById('modalOverlay').classList.remove('open');
     activeEntryId = null;
   });
 
-  // Modaldaki Verileri Kaydetme (Mevcutların üzerine ekler)
   document.getElementById('modalSave').addEventListener('click', () => {
     if(!activeEntryId) return;
     const index = entries.findIndex(item => item.id === activeEntryId);
     if(index === -1) return;
 
-    const d = parseInt(document.getElementById('dogruInput').value) || 0;
-    const y = parseInt(document.getElementById('yanlisInput').value) || 0;
-    const b = parseInt(document.getElementById('bosInput').value) || 0;
+    const d = Math.max(0, parseInt(document.getElementById('dogruInput').value) || 0);
+    const y = Math.max(0, parseInt(document.getElementById('yanlisInput').value) || 0);
+    const b = Math.max(0, parseInt(document.getElementById('bosInput').value) || 0);
 
     entries[index].dogru = (entries[index].dogru || 0) + d;
     entries[index].yanlis = (entries[index].yanlis || 0) + y;
