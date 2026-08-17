@@ -512,7 +512,7 @@
   </div>
 </div>
 
-<!-- DERS VE DÜRÜM DÜZENLEME MODALI -->
+<!-- DERS VE DURUM DÜZENLEME MODALI -->
 <div class="modal-overlay" id="modalOverlay">
   <form class="modal" id="modalForm">
     <div class="modal-title">Dersi Düzenle</div>
@@ -869,11 +869,10 @@
     if(index === -1) return;
 
     if(act === 'del') {
-      if(confirm('Bu dersi silmek istediğinize emin misiniz?')) {
-        entries.splice(index, 1);
-        render();
-        saveToCloud();
-      }
+      // Doğrudan silme (Onay penceresi kaldırıldı)
+      entries.splice(index, 1);
+      render();
+      saveToCloud();
     } 
     else if(act === 'plus') {
       entries[index].cozulen += 1;
