@@ -101,6 +101,39 @@
     background:var(--surface-alt); border:1px solid var(--rule); color:var(--text); border-radius:6px; padding:9px 10px; font-family:'Inter',sans-serif; font-size:14px;
   }
   input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+  /* SÜRÜKLENEBİLİR ÇUBUK (SLIDER) STİLİ */
+  .slider-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: var(--surface-alt);
+    border-radius: 4px;
+    outline: none;
+    border: 1px solid var(--rule);
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 6px rgba(0,0,0,0.5);
+    transition: transform 0.1s ease;
+  }
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
   
   /* ÖZEL AÇILIR MENÜ (DROPDOWN) BİLEŞENİ */
   .custom-dropdown {
@@ -188,7 +221,7 @@
   /* Modallar */
   .modal-overlay{ display:none; position:fixed; inset:0; background:rgba(10,12,16,0.85); align-items:center; justify-content:center; padding:20px; z-index:5000; }
   .modal-overlay.open{ display:flex; }
-  .modal{ background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:22px; width:100%; max-width:380px; display:flex; flex-direction:column; gap:8px; }
+  .modal{ background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:22px; width:100%; max-width:400px; display:flex; flex-direction:column; gap:8px; }
   .modal-title{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; color:var(--gold); }
   .modal-sub{ font-size:13px; color:var(--text-dim); margin-top:2px; margin-bottom:8px; line-height:1.4; }
   .modal label { font-size: 12px; color: var(--text-dim); }
@@ -338,14 +371,30 @@
     <input type="text" id="editDersInput" required>
     <label>Hedef Soru Sayısı</label>
     <input type="number" id="editHedefInput" min="1" required>
+    
     <hr style="border:0; border-top:1px solid var(--rule); margin: 6px 0;">
     <div class="modal-sub">Çözülen Soru Detayları:</div>
-    <label>Doğru Sayısı</label>
-    <input type="number" id="dogruInput" placeholder="0" min="0">
-    <label>Yanlış Sayısı</label>
-    <input type="number" id="yanlisInput" placeholder="0" min="0">
-    <label>Boş Sayısı</label>
-    <input type="number" id="bosInput" placeholder="0" min="0">
+    
+    <label>Çözülen Soru Sayısı (Sürükleyin veya Yazın)</label>
+    <div class="slider-container">
+      <input type="range" id="cozulenRange" min="0" max="200" value="0">
+      <input type="number" id="cozulenInput" placeholder="0" min="0" style="width: 80px; text-align: center; font-weight: 600; color: var(--gold);">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;">
+      <div>
+        <label>Yanlış Sayısı</label>
+        <input type="number" id="yanlisInput" placeholder="0" min="0">
+      </div>
+      <div>
+        <label>Boş Sayısı</label>
+        <input type="number" id="bosInput" placeholder="0" min="0">
+      </div>
+    </div>
+
+    <label style="margin-top: 4px;">Doğru Sayısı (Otomatik Hesaplanan)</label>
+    <input type="number" id="dogruInput" placeholder="0" readonly style="opacity: 0.8; cursor: not-allowed; background: var(--bg); color: var(--green); font-weight: bold;">
+
     <div class="modal-actions">
       <button type="button" class="btn ghost" id="modalCancel">Vazgeç</button>
       <button type="submit" class="btn" id="modalSave">Kaydet</button>
@@ -359,8 +408,8 @@
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // --- KENDİ ADMIN E-POSTALARINI BURAYA YAZ ---
-  const ADMIN_EMAILS = ["mehmetsaidmavi28@gmail.com", "mehmetsaidmavi28@gmail.com"]; 
+  // --- ADMIN E-POSTA ADRESİ ---
+  const ADMIN_EMAILS = ["mehmetsaidmavi28@gmail.com"]; 
 
   const firebaseConfig = {
     apiKey: "AIzaSyASap2Qi2bG-BOqoZRyOUEbn7Y1dfAwhk0",
@@ -593,14 +642,12 @@
       if (docSnap.exists()) {
         const data = docSnap.data();
 
-        // ESKİ KULLANICI KONTROLÜ: Kullanıcı adı yoksa zorunlu pencereyi aç!
         if (!data.username || data.username.trim() === '') {
           document.getElementById('usernameModalOverlay').classList.add('open');
         } else {
           document.getElementById('usernameModalOverlay').classList.remove('open');
         }
         
-        // Kullanıcı Adını Ekrana Yazdır
         const displayName = data.username ? `${data.username} (${data.email})` : data.email;
         document.getElementById('userDisplayName').textContent = displayName;
 
@@ -651,7 +698,6 @@
     return date.toLocaleDateString('tr-TR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   }
 
-  // ÖZEL DROPDOWN GÜNCELLEME VE FİLTRELEME
   function updateCustomDropdown() {
     const dropdown = document.getElementById('customDersList');
     if (!dropdown) return;
@@ -831,6 +877,57 @@
     saveToCloud();
   });
 
+  // --- MODAL VE ÇUBUK (SLIDER) SENKRONİZASYON MANTIĞI ---
+  const cozulenRange = document.getElementById('cozulenRange');
+  const cozulenInput = document.getElementById('cozulenInput');
+  const yanlisInput = document.getElementById('yanlisInput');
+  const bosInput = document.getElementById('bosInput');
+  const dogruInput = document.getElementById('dogruInput');
+  const editHedefInput = document.getElementById('editHedefInput');
+
+  function updateSliderMax() {
+    const hedef = parseInt(editHedefInput.value) || 20;
+    // Çubuğun maksimum değeri hedefin 2 katı veya en az 100 olacak şekilde esnetilir
+    const maxVal = Math.max(hedef * 2, 100);
+    cozulenRange.max = maxVal;
+  }
+
+  function calcDogru() {
+    const cozulen = parseInt(cozulenInput.value) || 0;
+    const yanlis = parseInt(yanlisInput.value) || 0;
+    const bos = parseInt(bosInput.value) || 0;
+    const dogru = Math.max(0, cozulen - yanlis - bos);
+    
+    dogruInput.value = (cozulen > 0 || yanlis > 0 || bos > 0) ? dogru : 0;
+  }
+
+  // Çubuk sürüklendiğinde kutuyu güncelle
+  cozulenRange.addEventListener('input', () => {
+    cozulenInput.value = cozulenRange.value;
+    calcDogru();
+  });
+
+  // Kutudan sayı girildiğinde çubuğu güncelle
+  cozulenInput.addEventListener('input', () => {
+    const val = parseInt(cozulenInput.value) || 0;
+    if (val > parseInt(cozulenRange.max)) {
+      cozulenRange.max = val + 50; 
+    }
+    cozulenRange.value = val;
+    calcDogru();
+  });
+
+  editHedefInput.addEventListener('input', updateSliderMax);
+  yanlisInput.addEventListener('input', calcDogru);
+  bosInput.addEventListener('input', calcDogru);
+
+  function closeAndResetModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.getElementById('modalForm').reset();
+    cozulenRange.value = 0;
+    activeEntryId = null;
+  }
+
   document.getElementById('ledger').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-act]');
     if(!btn) return;
@@ -860,17 +957,29 @@
     } 
     else if(act === 'open-modal') {
       activeEntryId = btn.getAttribute('data-id');
+      
       document.getElementById('editDersInput').value = entries[index].ders;
       document.getElementById('editHedefInput').value = entries[index].hedef;
-      document.getElementById('dogruInput').value = entries[index].dogru || 0;
-      document.getElementById('yanlisInput').value = entries[index].yanlis || 0;
-      document.getElementById('bosInput').value = entries[index].bos || 0;
+      
+      const cozulen = entries[index].cozulen || 0;
+      cozulenInput.value = cozulen;
+      
+      updateSliderMax();
+      if (cozulen > parseInt(cozulenRange.max)) {
+        cozulenRange.max = cozulen + 50;
+      }
+      cozulenRange.value = cozulen;
+
+      yanlisInput.value = entries[index].yanlis || '';
+      bosInput.value = entries[index].bos || '';
+      dogruInput.value = entries[index].dogru || 0;
+      
       document.getElementById('modalOverlay').classList.add('open');
-      document.getElementById('editDersInput').focus();
+      cozulenInput.focus();
     }
   });
 
-  document.getElementById('modalCancel').addEventListener('click', () => { document.getElementById('modalOverlay').classList.remove('open'); activeEntryId = null; });
+  document.getElementById('modalCancel').addEventListener('click', closeAndResetModal);
 
   document.getElementById('modalForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -881,16 +990,20 @@
     const yeniDersAdi = document.getElementById('editDersInput').value.trim();
     if(yeniDersAdi) entries[index].ders = yeniDersAdi;
     
+    const cozulen = Math.max(0, parseInt(cozulenInput.value) || 0);
+    const yanlis = Math.max(0, parseInt(yanlisInput.value) || 0);
+    const bos = Math.max(0, parseInt(bosInput.value) || 0);
+    const dogru = Math.max(0, cozulen - yanlis - bos);
+
     entries[index].hedef = Math.max(1, parseInt(document.getElementById('editHedefInput').value) || 20);
-    entries[index].dogru = Math.max(0, parseInt(document.getElementById('dogruInput').value) || 0);
-    entries[index].yanlis = Math.max(0, parseInt(document.getElementById('yanlisInput').value) || 0);
-    entries[index].bos = Math.max(0, parseInt(document.getElementById('bosInput').value) || 0);
-    entries[index].cozulen = entries[index].dogru + entries[index].yanlis + entries[index].bos;
+    entries[index].cozulen = cozulen;
+    entries[index].dogru = dogru;
+    entries[index].yanlis = yanlis;
+    entries[index].bos = bos;
     entries[index].manualDone = entries[index].cozulen >= entries[index].hedef;
 
     render(); saveToCloud();
-    document.getElementById('modalOverlay').classList.remove('open');
-    activeEntryId = null;
+    closeAndResetModal();
   });
 </script>
 </body>
