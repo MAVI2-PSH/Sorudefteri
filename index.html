@@ -66,7 +66,71 @@
 
   header{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:28px; border-bottom:1px solid var(--rule); padding-bottom:18px; }
   h1{ font-family:'Fraunces',serif; font-weight:700; font-size:32px; margin:0; letter-spacing:-0.5px; }
-  .date-label{ font-size:13px; color:var(--text-dim); margin-top:4px; text-transform:capitalize; }
+
+  /* ESTETİK TARİH VE SEÇİM ALANLARI */
+  .date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(217, 169, 78, 0.1);
+    border: 1px solid rgba(217, 169, 78, 0.25);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: 500;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    text-transform: capitalize;
+  }
+
+  .date-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .date-input-wrapper svg {
+    position: absolute;
+    left: 10px;
+    width: 15px;
+    height: 15px;
+    stroke: var(--gold);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .date-input-wrapper input {
+    padding-left: 32px !important;
+    background: var(--surface-alt) !important;
+    border: 1px solid var(--rule) !important;
+    color: var(--gold) !important;
+    font-weight: 600;
+    border-radius: 6px !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .date-input-wrapper input:hover, .date-input-wrapper input:focus {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 8px rgba(217, 169, 78, 0.25);
+  }
+
+  .styled-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--surface-alt) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d9a94e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center !important;
+    padding: 5px 28px 5px 12px !important;
+    border: 1px solid var(--rule) !important;
+    border-radius: 6px !important;
+    color: var(--text) !important;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .styled-select:hover, .styled-select:focus {
+    border-color: var(--gold) !important;
+    outline: none;
+  }
+
   .today-total{ text-align:right; }
   .today-total .num{ font-family:'IBM Plex Mono',monospace; font-size:34px; font-weight:600; color:var(--gold); line-height:1; }
   .today-total .lbl{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; }
@@ -77,7 +141,6 @@
   .card{ background:var(--surface); border-radius:10px; border:1px solid var(--rule); margin-bottom:22px; position:relative; }
   .primary-col .card:first-child { z-index: 20; }
   .card-head{ padding:14px 18px; font-family:'Fraunces',serif; font-weight:600; font-size:16px; border-bottom:1px solid var(--rule); display:flex; justify-content:space-between; align-items:center; border-top-left-radius:9px; border-top-right-radius:9px; }
-  .card-head select{ background:var(--surface-alt); color:var(--text); border:1px solid var(--rule); border-radius:6px; padding:4px 8px; font-size:13px; }
 
   /* Sidebar */
   .sidebar-card { position: sticky; top: 20px; }
@@ -260,7 +323,11 @@
     <header>
       <div>
         <h1>Soru Defteri</h1>
-        <div class="date-label" id="dateLabel"></div>
+        <!-- ŞIK YENİ TARİH ROZETİ -->
+        <div class="date-badge" id="dateLabel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Yükleniyor...</span>
+        </div>
       </div>
       <div class="today-total">
         <div class="num" id="todayTotal">0</div>
@@ -274,7 +341,11 @@
         <div class="card">
           <div class="card-head">Bugüne ders ekle</div>
           <form class="add-form" id="addForm">
-            <input type="text" id="planDate" style="width:110px;">
+            <!-- İKONLU MODERN TARİH GİRDİ KUTUSU -->
+            <div class="date-input-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <input type="text" id="planDate" style="width:125px;">
+            </div>
             <div style="position:relative; flex:1;">
               <input type="text" id="dersInput" placeholder="Ders / konu adı" required autocomplete="off" style="width:100%;">
               <div id="customDersList" class="custom-dropdown"></div>
@@ -287,7 +358,8 @@
         <div class="card">
           <div class="card-head">
             <span>Plan</span>
-            <select id="dateSelect"></select>
+            <!-- ŞIK YENİ AÇILIR TARİH MENÜSÜ -->
+            <select id="dateSelect" class="styled-select"></select>
           </div>
           <div class="ledger" id="ledger"></div>
           
@@ -339,7 +411,10 @@
 
     <div class="admin-filters">
       <label for="adminDateFilter" style="color:var(--text-dim); font-size: 14px;">Görüntülenecek Tarih:</label>
-      <input type="text" id="adminDateFilter" style="width: 150px;">
+      <div class="date-input-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <input type="text" id="adminDateFilter" style="width: 140px;">
+      </div>
       <button class="btn" id="btnLoadAdminData">Verileri Getir</button>
     </div>
 
@@ -366,34 +441,40 @@
 <!-- DERS VE DURUM DÜZENLEME MODALI -->
 <div class="modal-overlay" id="modalOverlay">
   <form class="modal" id="modalForm">
-    <div class="modal-title">Dersi Düzenle</div>
+    <div class="modal-title">Soru Ekle / Düzenle</div>
     <label>Ders / Konu Adı</label>
     <input type="text" id="editDersInput" required>
     <label>Hedef Soru Sayısı</label>
     <input type="number" id="editHedefInput" min="1" required>
     
     <hr style="border:0; border-top:1px solid var(--rule); margin: 6px 0;">
-    <div class="modal-sub">Çözülen Soru Detayları:</div>
     
-    <label>Çözülen Soru Sayısı (Sürükleyin veya Yazın)</label>
+    <!-- MEVCUT DURUM BİLGİSİ -->
+    <div id="modalOldStats" style="font-size:12px; color:var(--gold); background:var(--surface-alt); padding:8px 10px; border-radius:6px; border:1px solid var(--rule); margin-bottom:6px;">
+      Mevcut: 0 Soru
+    </div>
+
+    <label>Yeni Çözülen Soru Sayısı (+Eklenecek)</label>
     <div class="slider-container">
-      <input type="range" id="cozulenRange" min="0" max="200" value="0">
+      <input type="range" id="cozulenRange" min="0" max="100" value="0">
       <input type="number" id="cozulenInput" placeholder="0" min="0" style="width: 80px; text-align: center; font-weight: 600; color: var(--gold);">
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;">
       <div>
-        <label>Yanlış Sayısı</label>
+        <label>Eklenecek Yanlış</label>
         <input type="number" id="yanlisInput" placeholder="0" min="0">
       </div>
       <div>
-        <label>Boş Sayısı</label>
+        <label>Eklenecek Boş</label>
         <input type="number" id="bosInput" placeholder="0" min="0">
       </div>
     </div>
 
-    <label style="margin-top: 4px;">Doğru Sayısı (Otomatik Hesaplanan)</label>
-    <input type="number" id="dogruInput" placeholder="0" readonly style="opacity: 0.8; cursor: not-allowed; background: var(--bg); color: var(--green); font-weight: bold;">
+    <!-- HESAPLANAN YENİ TOPLAM BİLGİSİ -->
+    <div id="modalSummary" style="font-size:13px; font-weight:600; color:var(--green); background:rgba(111,191,139,0.1); padding:10px; border-radius:6px; border:1px solid var(--green-dim); margin-top:8px; text-align:center;">
+      Kayıt Sonrası Toplam: 0 Soru
+    </div>
 
     <div class="modal-actions">
       <button type="button" class="btn ghost" id="modalCancel">Vazgeç</button>
@@ -783,7 +864,12 @@
 
   function render(){
     dataByDateMap[currentDate] = entries;
-    document.getElementById('dateLabel').textContent = formatDateLabel(currentDate);
+    
+    // YENİ İKONLU TARİH ROZETİ İÇERİĞİ
+    document.getElementById('dateLabel').innerHTML = 
+      `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>` + 
+      `<span>${formatDateLabel(currentDate)}</span>`;
+
     const ledger = document.getElementById('ledger');
     ledger.innerHTML = '';
 
@@ -877,49 +963,55 @@
     saveToCloud();
   });
 
-  // --- MODAL VE ÇUBUK (SLIDER) SENKRONİZASYON MANTIĞI ---
+  // --- MODAL VE TOPLAMA MANTIĞI ---
   const cozulenRange = document.getElementById('cozulenRange');
   const cozulenInput = document.getElementById('cozulenInput');
   const yanlisInput = document.getElementById('yanlisInput');
   const bosInput = document.getElementById('bosInput');
-  const dogruInput = document.getElementById('dogruInput');
   const editHedefInput = document.getElementById('editHedefInput');
 
-  function updateSliderMax() {
-    const hedef = parseInt(editHedefInput.value) || 20;
-    // Çubuğun maksimum değeri hedefin 2 katı veya en az 100 olacak şekilde esnetilir
-    const maxVal = Math.max(hedef * 2, 100);
-    cozulenRange.max = maxVal;
-  }
+  let oldCozulen = 0, oldYanlis = 0, oldBos = 0;
 
-  function calcDogru() {
-    const cozulen = parseInt(cozulenInput.value) || 0;
-    const yanlis = parseInt(yanlisInput.value) || 0;
-    const bos = parseInt(bosInput.value) || 0;
-    const dogru = Math.max(0, cozulen - yanlis - bos);
-    
-    dogruInput.value = (cozulen > 0 || yanlis > 0 || bos > 0) ? dogru : 0;
-  }
-
-  // Çubuk sürüklendiğinde kutuyu güncelle
-  cozulenRange.addEventListener('input', () => {
-    cozulenInput.value = cozulenRange.value;
-    calcDogru();
+  // Kutulara tıklandığında içini kolay yazım için otomatik seç
+  document.querySelectorAll('.modal input').forEach(input => {
+    input.addEventListener('focus', function() {
+      setTimeout(() => this.select(), 20);
+    });
   });
 
-  // Kutudan sayı girildiğinde çubuğu güncelle
+  function updateCalculations() {
+    const addCozulen = Math.max(0, parseInt(cozulenInput.value) || 0);
+    const addYanlis = Math.max(0, parseInt(yanlisInput.value) || 0);
+    const addBos = Math.max(0, parseInt(bosInput.value) || 0);
+
+    const totalCozulen = oldCozulen + addCozulen;
+    const totalYanlis = oldYanlis + addYanlis;
+    const totalBos = oldBos + addBos;
+    const totalDogru = Math.max(0, totalCozulen - totalYanlis - totalBos);
+
+    document.getElementById('modalSummary').innerHTML = 
+      `Kayıt Sonrası Toplam: <b>${totalCozulen} Soru</b><br>` +
+      `<span style="font-size:11px; font-weight:normal; color:var(--text-dim)">` +
+      `(${totalDogru} Doğru, ${totalYanlis} Yanlış, ${totalBos} Boş)` +
+      `</span>`;
+  }
+
+  cozulenRange.addEventListener('input', () => {
+    cozulenInput.value = cozulenRange.value;
+    updateCalculations();
+  });
+
   cozulenInput.addEventListener('input', () => {
     const val = parseInt(cozulenInput.value) || 0;
     if (val > parseInt(cozulenRange.max)) {
       cozulenRange.max = val + 50; 
     }
     cozulenRange.value = val;
-    calcDogru();
+    updateCalculations();
   });
 
-  editHedefInput.addEventListener('input', updateSliderMax);
-  yanlisInput.addEventListener('input', calcDogru);
-  bosInput.addEventListener('input', calcDogru);
+  yanlisInput.addEventListener('input', updateCalculations);
+  bosInput.addEventListener('input', updateCalculations);
 
   function closeAndResetModal() {
     document.getElementById('modalOverlay').classList.remove('open');
@@ -961,21 +1053,24 @@
       document.getElementById('editDersInput').value = entries[index].ders;
       document.getElementById('editHedefInput').value = entries[index].hedef;
       
-      const cozulen = entries[index].cozulen || 0;
-      cozulenInput.value = cozulen;
-      
-      updateSliderMax();
-      if (cozulen > parseInt(cozulenRange.max)) {
-        cozulenRange.max = cozulen + 50;
-      }
-      cozulenRange.value = cozulen;
+      oldCozulen = entries[index].cozulen || 0;
+      oldYanlis = entries[index].yanlis || 0;
+      oldBos = entries[index].bos || 0;
 
-      yanlisInput.value = entries[index].yanlis || '';
-      bosInput.value = entries[index].bos || '';
-      dogruInput.value = entries[index].dogru || 0;
-      
+      document.getElementById('modalOldStats').innerHTML = 
+        `📌 Mevcut Durum: <b>${oldCozulen} Çözülen</b> (${entries[index].dogru||0} D / ${oldYanlis} Y / ${oldBos} B)`;
+
+      cozulenInput.value = '';
+      yanlisInput.value = '';
+      bosInput.value = '';
+      cozulenRange.value = 0;
+
+      updateCalculations();
       document.getElementById('modalOverlay').classList.add('open');
-      cozulenInput.focus();
+      
+      setTimeout(() => {
+        cozulenInput.focus();
+      }, 50);
     }
   });
 
@@ -990,16 +1085,20 @@
     const yeniDersAdi = document.getElementById('editDersInput').value.trim();
     if(yeniDersAdi) entries[index].ders = yeniDersAdi;
     
-    const cozulen = Math.max(0, parseInt(cozulenInput.value) || 0);
-    const yanlis = Math.max(0, parseInt(yanlisInput.value) || 0);
-    const bos = Math.max(0, parseInt(bosInput.value) || 0);
-    const dogru = Math.max(0, cozulen - yanlis - bos);
+    const addCozulen = Math.max(0, parseInt(cozulenInput.value) || 0);
+    const addYanlis = Math.max(0, parseInt(yanlisInput.value) || 0);
+    const addBos = Math.max(0, parseInt(bosInput.value) || 0);
+
+    const totCozulen = oldCozulen + addCozulen;
+    const totYanlis = oldYanlis + addYanlis;
+    const totBos = oldBos + addBos;
+    const totDogru = Math.max(0, totCozulen - totYanlis - totBos);
 
     entries[index].hedef = Math.max(1, parseInt(document.getElementById('editHedefInput').value) || 20);
-    entries[index].cozulen = cozulen;
-    entries[index].dogru = dogru;
-    entries[index].yanlis = yanlis;
-    entries[index].bos = bos;
+    entries[index].cozulen = totCozulen;
+    entries[index].dogru = totDogru;
+    entries[index].yanlis = totYanlis;
+    entries[index].bos = totBos;
     entries[index].manualDone = entries[index].cozulen >= entries[index].hedef;
 
     render(); saveToCloud();
