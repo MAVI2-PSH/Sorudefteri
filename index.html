@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d9a94e'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
 <style>
   :root{
     --bg: #14181f;
@@ -18,9 +19,9 @@
     --text-dim: #8f98a6;
     --gold: #d9a94e;
     --purple: #a855f7;
-    --green: #4ade80; /* Genel Dersler İçin Standart Yeşil */
+    --green: #4ade80;
     --green-dim: rgba(74, 222, 128, 0.2);
-    --tyt-done: #00e5ff; /* SADECE DENEME İÇİN TAMAMLANMA RENGI (NEON TURKUAZ) */
+    --tyt-done: #00e5ff;
     --error: #cf6666;
   }
   *{box-sizing:border-box;}
@@ -69,7 +70,6 @@
   header{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:28px; border-bottom:1px solid var(--rule); padding-bottom:18px; }
   h1{ font-family:'Fraunces',serif; font-weight:700; font-size:32px; margin:0; letter-spacing:-0.5px; }
 
-  /* ESTETİK TARİH VE SEÇİM ALANLARI */
   .date-badge {
     display: inline-flex;
     align-items: center;
@@ -84,6 +84,63 @@
     margin-top: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     text-transform: capitalize;
+  }
+
+  /* GÖRSEL TAKVİM VE NAVİGASYON BİLEŞENİ */
+  .date-nav-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .date-nav-btn {
+    background: var(--surface-alt);
+    border: 1px solid var(--rule);
+    color: var(--gold);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+  .date-nav-btn:hover {
+    background: var(--rule);
+    color: var(--text);
+  }
+  .styled-date-nav {
+    background: var(--surface-alt) !important;
+    border: 1px solid var(--rule) !important;
+    color: var(--gold) !important;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 6px 10px 6px 32px !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    width: 175px;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  .styled-date-nav:hover {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 8px rgba(217, 169, 78, 0.2);
+  }
+
+  /* Takvim Günlerinde Veri İkonu (Nokta) */
+  .flatpickr-day.has-entries::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--gold);
   }
 
   .date-input-wrapper {
@@ -109,28 +166,6 @@
     border-radius: 6px !important;
     cursor: pointer;
     transition: all 0.2s ease;
-  }
-  .date-input-wrapper input:hover, .date-input-wrapper input:focus {
-    border-color: var(--gold) !important;
-    box-shadow: 0 0 8px rgba(217, 169, 78, 0.25);
-  }
-
-  .styled-select {
-    appearance: none;
-    -webkit-appearance: none;
-    background: var(--surface-alt) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d9a94e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center !important;
-    padding: 5px 28px 5px 12px !important;
-    border: 1px solid var(--rule) !important;
-    border-radius: 6px !important;
-    color: var(--text) !important;
-    font-weight: 500;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .styled-select:hover, .styled-select:focus {
-    border-color: var(--gold) !important;
-    outline: none;
   }
 
   .today-total{ text-align:right; }
@@ -162,12 +197,11 @@
   /* Form & Inputs */
   .add-form{ display:flex; gap:8px; padding:16px 18px; position:relative; }
   .add-form input[type=number]{ width:82px; }
-  input[type=text], input[type=number], input[type=email], input[type=password], input[type=date]{
+  input[type=text], input[type=number], input[type=email], input[type=password]{
     background:var(--surface-alt); border:1px solid var(--rule); color:var(--text); border-radius:6px; padding:9px 10px; font-family:'Inter',sans-serif; font-size:14px;
   }
   input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-  /* SLIDER STİLİ */
   .slider-container { display: flex; align-items: center; gap: 12px; }
   input[type=range] {
     -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: var(--surface-alt);
@@ -179,7 +213,6 @@
   }
   input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
   
-  /* DROPDOWN */
   .custom-dropdown {
     display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--surface-alt);
     border: 1px solid var(--rule); border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.6);
@@ -218,7 +251,6 @@
   .progress-fill{ height:100%; background:var(--gold); border-radius:3px; transition:width 0.3s ease; }
   .row.done .progress-fill{background:var(--green);}
 
-  /* TYT DENEME ÖZEL TEMASI VE TAMAMLANMA STİLİ */
   .row.is-tyt {
     background: linear-gradient(90deg, rgba(147, 51, 234, 0.18) 0%, rgba(27, 33, 42, 0.85) 100%) !important;
     border-left: 4px solid var(--purple) !important;
@@ -238,7 +270,6 @@
     vertical-align: middle;
   }
 
-  /* SADECE DENEME TAMAMLANDIĞINDA GEÇERLİ OLAN RENK */
   .row.is-tyt.done {
     background: linear-gradient(90deg, rgba(0, 229, 255, 0.18) 0%, rgba(27, 33, 42, 0.85) 100%) !important;
     border-left-color: var(--tyt-done) !important;
@@ -299,8 +330,9 @@
   .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:10px; }
 
 </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
 </head>
 <body>
 <div class="page">
@@ -349,7 +381,7 @@
           <form class="add-form" id="addForm">
             <div class="date-input-wrapper">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <input type="text" id="planDate" style="width:125px;">
+              <input type="text" id="planDate" style="width:125px;" readonly>
             </div>
             <div style="position:relative; flex:1;">
               <input type="text" id="dersInput" placeholder="Ders / konu adı" required autocomplete="off" style="width:100%;">
@@ -363,7 +395,15 @@
         <div class="card">
           <div class="card-head">
             <span>Plan</span>
-            <select id="dateSelect" class="styled-select"></select>
+            <!-- GÖRSEL TAKVİM BUTONU VE OKLAR -->
+            <div class="date-nav-container">
+              <button type="button" class="date-nav-btn" id="prevDayBtn" title="Önceki Gün">‹</button>
+              <div class="date-input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <input type="text" id="planDateNav" readonly class="styled-date-nav" title="Takvimden Tarih Seç">
+              </div>
+              <button type="button" class="date-nav-btn" id="nextDayBtn" title="Sonraki Gün">›</button>
+            </div>
           </div>
           <div class="ledger" id="ledger"></div>
           
@@ -417,7 +457,7 @@
       <label for="adminDateFilter" style="color:var(--text-dim); font-size: 14px;">Görüntülenecek Tarih:</label>
       <div class="date-input-wrapper">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <input type="text" id="adminDateFilter" style="width: 140px;">
+        <input type="text" id="adminDateFilter" style="width: 140px;" readonly>
       </div>
       <button class="btn" id="btnLoadAdminData">Verileri Getir</button>
     </div>
@@ -491,6 +531,11 @@
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+  // Flatpickr Türkçe Lokasyon Yapılandırması
+  if (window.flatpickr) {
+    flatpickr.localize(flatpickr.l10ns.tr);
+  }
+
   const ADMIN_EMAILS = ["mehmetsaidmavi28@gmail.com"]; 
 
   const firebaseConfig = {
@@ -514,6 +559,8 @@
   let activeEntryId = null;
   let unsubscribeUserData = null; 
   let isAdmin = false;
+  let fpAdd = null; 
+  let fpNav = null; 
 
   const defaultLessons = ["TYT Deneme", "Matematik", "Fizik", "Kimya", "Biyoloji", "Geometri", "Türk Dili ve Edebiyatı", "Tarih", "Coğrafya"];
 
@@ -630,7 +677,7 @@
     }
   });
 
-  const adminDatePicker = flatpickr("#adminDateFilter", {
+  flatpickr("#adminDateFilter", {
     defaultDate: "today",
     dateFormat: "Y-m-d",
     onChange: function(selectedDates, dateStr) {
@@ -749,20 +796,6 @@
     } catch(e) { console.error("Buluta kaydedilirken hata oluştu: ", e); }
   }
 
-  function populateDateSelect(){
-    const sel = document.getElementById('dateSelect');
-    if(!sel) return;
-    sel.innerHTML = '';
-    const sorted = [...new Set(allDates)].sort().reverse();
-    sorted.forEach(key=>{
-      const opt = document.createElement('option');
-      opt.value = key;
-      opt.textContent = key === todayKey() ? 'Bugün — '+key : key;
-      if(key === currentDate) opt.selected = true;
-      sel.appendChild(opt);
-    });
-  }
-
   function formatDateLabel(key){
     if(!key) return "";
     const parts = key.split('-');
@@ -855,6 +888,17 @@
     document.getElementById('sideWeeklyRatio').textContent = `%${wTotal > 0 ? Math.round((wDogru / wTotal) * 100) : 0}`;
   }
 
+  function changeCurrentDate(newDateStr) {
+    currentDate = newDateStr;
+    if(!allDates.includes(currentDate)) allDates.push(currentDate);
+    entries = dataByDateMap[currentDate] || [];
+
+    if(fpNav) fpNav.setDate(currentDate, false);
+    if(fpAdd) fpAdd.setDate(currentDate, false);
+
+    render();
+  }
+
   function render(){
     dataByDateMap[currentDate] = entries;
     
@@ -870,7 +914,6 @@
     } else {
       entries.forEach(entry=>{
         const done = entry.manualDone === true || entry.cozulen >= entry.hedef;
-        // TYT Deneme Ders Kontrolü
         const isTyt = entry.ders && entry.ders.toLowerCase().includes('tyt');
         const pct = done ? 100 : Math.min(100, Math.round((entry.cozulen / entry.hedef) * 100));
         
@@ -912,7 +955,6 @@
     document.getElementById('statYanlis').textContent = entries.reduce((s,e) => s + (e.yanlis || 0), 0);
     document.getElementById('statBos').textContent = entries.reduce((s,e) => s + (e.bos || 0), 0);
 
-    populateDateSelect();
     updateWeeklyStats();
   }
 
@@ -922,21 +964,46 @@
     return div.innerHTML;
   }
 
-  document.getElementById('dateSelect').addEventListener('change', (e) => {
-    currentDate = e.target.value;
-    entries = dataByDateMap[currentDate] || [];
-    render();
-  });
-
-  const fp = flatpickr("#planDate", {
-    defaultDate: "today", dateFormat: "Y-m-d",
+  // SOL TARAFTAKİ TARİH SEÇİCİ (FLATPICKR)
+  fpAdd = flatpickr("#planDate", {
+    defaultDate: "today", 
+    dateFormat: "Y-m-d",
     onChange: function(selectedDates, dateStr) {
-      currentDate = dateStr;
-      if(!allDates.includes(currentDate)) allDates.push(currentDate);
-      entries = dataByDateMap[currentDate] || [];
-      render();
+      changeCurrentDate(dateStr);
     }
   });
+
+  // SAĞ TARAFTAKİ TARİH NAVİGASYON TAKVİMİ (FLATPICKR)
+  fpNav = flatpickr("#planDateNav", {
+    defaultDate: "today",
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "j F Y, l",
+    onChange: function(selectedDates, dateStr) {
+      changeCurrentDate(dateStr);
+    },
+    onDayCreate: function(dObj, dStr, fp, dayElem) {
+      const formattedDate = dayElem.dateObj.getFullYear() + '-' + 
+        String(dayElem.dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+        String(dayElem.dateObj.getDate()).padStart(2, '0');
+        
+      if (dataByDateMap[formattedDate] && dataByDateMap[formattedDate].length > 0) {
+        dayElem.classList.add('has-entries');
+      }
+    }
+  });
+
+  // ÖNCEKİ VE SONRAKİ GÜN OK BUTONLARI
+  function shiftDate(days) {
+    const [y, m, d] = currentDate.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + days);
+    const newDateStr = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+    changeCurrentDate(newDateStr);
+  }
+
+  document.getElementById('prevDayBtn').addEventListener('click', () => shiftDate(-1));
+  document.getElementById('nextDayBtn').addEventListener('click', () => shiftDate(1));
 
   document.getElementById('addForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -965,7 +1032,6 @@
   const cozulenInput = document.getElementById('cozulenInput');
   const yanlisInput = document.getElementById('yanlisInput');
   const bosInput = document.getElementById('bosInput');
-  const editHedefInput = document.getElementById('editHedefInput');
 
   let oldCozulen = 0, oldYanlis = 0, oldBos = 0;
 
