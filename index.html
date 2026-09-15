@@ -11,12 +11,12 @@
 <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
 <style>
   :root {
-    --bg-main: #f4f5f9;
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --purple-card: #581c87;
-    --purple-light: #ede9fe;
-    --purple-text: #4c1d95;
+    --bg-main: #f0fdfa;
+    --primary: #0f766e;
+    --primary-dark: #115e59;
+    --purple-card: #0f766e;
+    --purple-light: #ccfbf1;
+    --purple-text: #115e59;
     --green-bg: #dcfce7;
     --green-border: #86efac;
     --green-text: #15803d;
@@ -25,7 +25,7 @@
     --blue-border: #bfdbfe;
     --text-dark: #1e293b;
     --text-muted: #64748b;
-    --card-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    --card-shadow: 0 4px 20px rgba(15, 118, 110, 0.08);
     --border-radius: 18px;
     --danger: #ef4444;
     --warning: #f59e0b;
@@ -34,7 +34,7 @@
   * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
   body { margin: 0; background-color: var(--bg-main); color: var(--text-dark); padding-bottom: 90px; }
 
-  /* App Container - Genişlik 1100px olarak güncellendi */
+  /* App Container */
   .app-container { max-width: 1100px; margin: 0 auto; padding: 12px 16px; }
 
   /* Auth Screen */
@@ -66,11 +66,11 @@
   .icon-btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
   
   .timer-pill {
-    background: #4c1d95; color: #fff; border-radius: 30px; padding: 8px 18px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px;
+    background: #115e59; color: #fff; border-radius: 30px; padding: 8px 18px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px;
   }
   .timer-pill button { background: none; border: none; color: #fff; cursor: pointer; font-size: 14px; padding: 0; }
   .user-badge {
-    background: #ede9fe; color: #5b21b6; font-weight: 800; width: 42px; height: 42px; border-radius: 50%;
+    background: #ccfbf1; color: #115e59; font-weight: 800; width: 42px; height: 42px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; border: 2px solid var(--primary);
   }
 
@@ -113,12 +113,12 @@
 
   /* Hero Greeting Card */
   .hero-box {
-    background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+    background: linear-gradient(135deg, #ccfbf1 0%, #cffafe 100%);
     border-radius: 20px; padding: 18px 20px; margin-bottom: 18px; display: flex; gap: 14px; align-items: flex-start;
   }
   .hero-icon { font-size: 28px; background: #fff; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .hero-text h3 { margin: 0 0 4px 0; font-size: 17px; color: #312e81; font-weight: 800; }
-  .hero-text p { margin: 0; font-size: 13px; color: #4338ca; line-height: 1.4; }
+  .hero-text h3 { margin: 0 0 4px 0; font-size: 17px; color: #134e4a; font-weight: 800; }
+  .hero-text p { margin: 0; font-size: 13px; color: #0f766e; line-height: 1.4; }
 
   .greeting-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; color: var(--text-dark); }
   .greeting-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
@@ -142,7 +142,7 @@
     box-shadow: var(--card-shadow); margin-bottom: 22px;
   }
   .main-card-header {
-    background: linear-gradient(135deg, #581c87 0%, #6b21a8 100%); color: #fff;
+    background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%); color: #fff;
     padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
   }
   .main-card-title { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
@@ -153,7 +153,7 @@
 
   .card-body-content { padding: 16px; }
 
-  /* Task Cards */
+  /* Task Cards & Progress Lines */
   .task-list { display: flex; flex-direction: column; gap: 12px; }
   .task-item {
     border-radius: 18px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center;
@@ -174,11 +174,19 @@
   .task-info-side { flex: 1; padding-right: 12px; }
   .task-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; color: #1e1b4b; }
   .task-desc { font-size: 13px; font-weight: 600; color: #64748b; line-height: 1.3; }
-  .task-meta { font-size: 11px; margin-top: 6px; font-weight: 700; color: var(--primary); display: flex; gap: 8px; flex-wrap: wrap; }
+  .task-meta { font-size: 13px; margin-top: 6px; font-weight: 700; color: var(--primary); display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Kart İçi Soru İlerleme Çizgisi */
+  .task-progress-wrapper { margin-top: 10px; margin-bottom: 6px; }
+  .task-progress-bar { background: #e2e8f0; height: 7px; border-radius: 4px; overflow: hidden; width: 100%; }
+  .task-progress-fill { background: var(--primary); height: 100%; transition: width 0.3s ease; border-radius: 4px; }
+  .task-item.completed .task-progress-fill { background: #22c55e; }
+  .task-progress-text { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 4px; display: flex; justify-content: space-between; }
+  .task-item.completed .task-progress-text { color: var(--green-text); }
 
   /* Doğru - Yanlış - Boş Badgeleri */
   .result-pills { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
-  .res-pill { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px; }
+  .res-pill { font-size: 13px; font-weight: 800; padding: 2px 8px; border-radius: 8px; }
   .res-pill.d { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
   .res-pill.y { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
   .res-pill.b { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
@@ -191,7 +199,7 @@
     background: var(--green-check); border-color: var(--green-check); color: #fff; font-weight: 900;
   }
 
-  /* Weekly Navigation Section - Kart Genişlikleri Artırıldı */
+  /* Weekly Navigation Section */
   .view-tabs { display: flex; gap: 8px; margin-bottom: 16px; background: #e2e8f0; padding: 4px; border-radius: 14px; }
   .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; font-weight: 700; font-size: 13px; border-radius: 10px; cursor: pointer; color: var(--text-muted); }
   .tab-btn.active { background: #fff; color: var(--primary-dark); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
@@ -204,11 +212,11 @@
   .day-card { background: #fff; border-radius: 20px; border: 1.5px solid #e2e8f0; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
   .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
   .day-header-title { font-size: 16px; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 8px; }
-  .day-badge { background: #4c1d95; color: #fff; font-size: 12px; font-weight: 800; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
+  .day-badge { background: #115e59; color: #fff; font-size: 12px; font-weight: 800; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
 
   .day-task-pill {
-    background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 10px 14px; font-size: 13px;
-    font-weight: 700; color: #4c1d95; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+    background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 12px; padding: 10px 14px; font-size: 13px;
+    font-weight: 700; color: #155e75; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;
   }
   .day-task-pill.done { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
 
@@ -216,7 +224,7 @@
     width: 100%; border: 1.5px dashed #cbd5e1; background: transparent; color: var(--text-muted); padding: 12px;
     border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; margin-top: 10px;
   }
-  .add-plan-btn:hover { border-color: var(--primary); color: var(--primary); background: #f5f3ff; }
+  .add-plan-btn:hover { border-color: var(--primary); color: var(--primary); background: #ecfeff; }
 
   /* Modal Dialog */
   .modal-overlay {
@@ -263,7 +271,7 @@
 
   /* Tarih Seçim Alanı Stili */
   .date-picker-wrapper { position: relative; display: flex; align-items: center; gap: 8px; }
-  .date-picker-input { background: #ffffff; border: 1.5px solid #c7d2fe; color: #312e81; font-weight: 700; cursor: pointer; padding-right: 40px; }
+  .date-picker-input { background: #ffffff; border: 1.5px solid #99f6e4; color: #134e4a; font-weight: 700; cursor: pointer; padding-right: 40px; }
   .date-picker-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
   .date-icon { position: absolute; right: 14px; pointer-events: none; font-size: 16px; }
   
@@ -281,9 +289,9 @@
   }
   .btn-pill-red { background: #ef4444; color: #fff; grid-column: span 1; }
   .btn-pill-dark { background: #1e293b; color: #fff; grid-column: span 1; }
-  .btn-pill-status { background: #6366f1; color: #fff; grid-column: span 2; }
+  .btn-pill-status { background: #0f766e; color: #fff; grid-column: span 2; }
   .btn-pill-status.completed-state { background: #f59e0b; }
-  .btn-pill-save { background: #4f46e5; color: #fff; grid-column: span 2; }
+  .btn-pill-save { background: #115e59; color: #fff; grid-column: span 2; }
 
   .empty-msg { text-align: center; color: var(--text-muted); font-size: 14px; padding: 24px 0; font-weight: 600; }
 
@@ -293,7 +301,7 @@
     width: 44px; height: 44px; border-radius: 50%; background: #f1f5f9; display: flex;
     align-items: center; justify-content: center; font-size: 20px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
   }
-  .avatar-option.selected { border-color: var(--primary); background: #ede9fe; transform: scale(1.1); }
+  .avatar-option.selected { border-color: var(--primary); background: #ccfbf1; transform: scale(1.1); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
@@ -374,7 +382,7 @@
     <!-- STATS GRID -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon" style="background:#e0e7ff; color:#4338ca;">📋</div>
+        <div class="stat-icon" style="background:#ccfbf1; color:#0f766e;">📋</div>
         <div class="stat-info">
           <div class="num" id="statTodayTask">0/0</div>
           <div class="lbl">Bugünkü Görev</div>
@@ -395,7 +403,7 @@
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon" style="background:#f3e8ff; color:#6b21a8;">✨</div>
+        <div class="stat-icon" style="background:#cffafe; color:#0e7490;">✨</div>
         <div class="stat-info">
           <div class="num" id="statTotalCorrect">0</div>
           <div class="lbl">Toplam Doğru</div>
@@ -888,7 +896,10 @@
     } else {
       todayEntries.forEach((entry) => {
         const cozulen = (entry.dogru || 0) + (entry.yanlis || 0) + (entry.bos || 0);
-        const isDone = entry.manualDone || (cozulen >= entry.hedef && entry.hedef > 0);
+        const hedef = entry.hedef || 1;
+        const oran = Math.min(Math.round((cozulen / hedef) * 100), 100);
+        
+        const isDone = entry.manualDone || (cozulen >= hedef && hedef > 0);
         if (isDone) completedCount++;
         totalSolved += cozulen;
 
@@ -901,6 +912,18 @@
           <div class="task-info-side" onclick="openEditModal('${entry.id}')">
             <div class="task-title">${escapeHtml(entry.ders)}</div>
             <div class="task-desc">${escapeHtml(descText)}</div>
+            
+            <!-- Görsel Soru İlerleme Çizgisi -->
+            <div class="task-progress-wrapper">
+              <div class="task-progress-bar">
+                <div class="task-progress-fill" style="width: ${oran}%;"></div>
+              </div>
+              <div class="task-progress-text">
+                <span>İlerleme: %${oran}</span>
+                <span>${cozulen} / ${hedef} Soru</span>
+              </div>
+            </div>
+
             <div class="task-meta">
               ${entry.konu ? `<span>📌 ${escapeHtml(entry.konu)}</span>` : ''}
             </div>
@@ -975,11 +998,20 @@
       let tasksHtml = '';
       dayTasks.forEach(t => {
         const cozulen = (t.dogru || 0) + (t.yanlis || 0) + (t.bos || 0);
+        const hedef = t.hedef || 1;
+        const oran = Math.min(Math.round((cozulen / hedef) * 100), 100);
         const isDone = t.manualDone || (cozulen >= t.hedef && t.hedef > 0);
+        
         tasksHtml += `
           <div class="day-task-pill ${isDone ? 'done' : ''}">
-            <span>${isDone ? '✓ ' : ''}${escapeHtml(t.ders)}</span>
-            <span>D:${t.dogru || 0} Y:${t.yanlis || 0} B:${t.bos || 0}</span>
+            <div style="display:flex; justify-content:space-between; width:100%;">
+              <span>${isDone ? '✓ ' : ''}${escapeHtml(t.ders)}</span>
+              <span>${cozulen}/${hedef} Soru</span>
+            </div>
+            <div style="font-size:11px; font-weight:700; opacity:0.78;">D: ${t.dogru || 0} &nbsp; Y: ${t.yanlis || 0} &nbsp; B: ${t.bos || 0}</div>
+            <div style="background:#e2e8f0; height:5px; border-radius:3px; width:100%; overflow:hidden;">
+              <div style="background:${isDone ? '#22c55e' : '#0f766e'}; height:100%; width:${oran}%;"></div>
+            </div>
           </div>
         `;
       });
