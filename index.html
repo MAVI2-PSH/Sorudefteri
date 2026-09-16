@@ -311,12 +311,21 @@
   .modal-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
   .btn-pill {
     padding: 14px; border-radius: 30px; font-weight: 800; font-size: 14px; border: none; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
   }
+  .btn-pill:hover { transform: translateY(-1px); filter: brightness(1.02); }
   .btn-pill-red { background: #ef4444; color: #fff; grid-column: span 1; }
-  .btn-pill-dark { background: #1e293b; color: #fff; grid-column: span 1; }
+  .btn-pill-dark {
+    background: rgba(15, 23, 42, 0.9); color: #fff; grid-column: span 1;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    border: 1px solid rgba(148, 163, 184, 0.32);
+  }
   .btn-pill-status { background: #0f766e; color: #fff; grid-column: span 2; }
   .btn-pill-status.completed-state { background: #f59e0b; }
-  .btn-pill-save { background: #115e59; color: #fff; grid-column: span 2; }
+  .btn-pill-save {
+    background: #115e59; color: #fff; grid-column: span 2;
+    box-shadow: 0 8px 18px rgba(17, 94, 89, 0.22);
+  }
 
   .deneme-card { background: var(--bg-main); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
   .deneme-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 15px; margin-bottom: 6px; }
@@ -715,9 +724,9 @@
         <input type="tel" id="whatsappPhoneInput" class="form-control" placeholder="Örn: 905xxxxxxxxx">
         <span style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">Numarayı boş bırakırsanız WhatsApp açıldığında kişi seçebilirsiniz.</span>
       </div>
-      <div class="modal-action-grid">
-        <button type="button" class="btn-pill btn-pill-dark" id="btnWhatsappCancel">İptal</button>
-        <button type="submit" class="btn-pill btn-pill-save" style="background:#25D366; color:#fff;">WhatsApp ile Gönder 🚀</button>
+      <div class="modal-action-grid" style="grid-template-columns: 1fr 2fr;">
+        <button type="button" class="btn-pill btn-pill-dark" id="btnWhatsappCancel" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 184, 0.35); box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);">İptal</button>
+        <button type="submit" class="btn-pill btn-pill-save" style="background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:#fff; box-shadow: 0 10px 22px rgba(34, 197, 94, 0.28);">WhatsApp ile Gönder 🚀</button>
       </div>
     </form>
   </div>
