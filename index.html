@@ -173,13 +173,14 @@
   
   .task-item.completed { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
   .task-item.completed .task-title { text-decoration: line-through; opacity: 0.85; color: var(--green-text); }
-  .task-item.completed .task-desc { text-decoration: line-through; opacity: 0.75; color: var(--green-text); }
+  .task-item.completed .task-detail-line { text-decoration: line-through; opacity: 0.75; color: var(--green-text); }
 
   .task-item.pending { background: var(--card-bg); border-color: var(--border-color); }
 
   .task-info-side { flex: 1; padding-right: 12px; }
   .task-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; color: var(--text-dark); }
-  .task-desc { font-size: 13px; font-weight: 600; color: var(--text-muted); line-height: 1.3; }
+  .task-details { display: flex; flex-direction: column; gap: 3px; }
+  .task-detail-line { font-size: 13px; font-weight: 600; color: var(--text-muted); line-height: 1.3; }
   .task-meta { font-size: 13px; margin-top: 6px; font-weight: 700; color: var(--primary); display: flex; gap: 8px; flex-wrap: wrap; }
 
   .task-progress-wrapper { margin-top: 10px; margin-bottom: 6px; }
@@ -250,12 +251,15 @@
   .modal-overlay.open { display: flex; }
   .modal-content {
     background: var(--card-bg); width: 100%; max-width: 540px; border-radius: 28px 28px 0 0;
-    padding: 24px; max-height: 90vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.3); animation: slideUp 0.25s ease-out; color: var(--text-dark);
+    padding: 24px; max-height: 90vh; overflow-y: auto; scrollbar-width: none; box-shadow: 0 -10px 40px rgba(0,0,0,0.3); animation: slideUp 0.25s ease-out; color: var(--text-dark);
   }
+  .modal-content::-webkit-scrollbar { display: none; }
   @media(min-width: 600px) { .modal-content { border-radius: 28px; } }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
   .modal-header-title { font-size: 20px; font-weight: 800; color: var(--text-dark); margin-bottom: 18px; }
+  .task-modal-header { display: flex; justify-content: space-between; align-items: center; }
+  .modal-close-btn { background: var(--border-color); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: 700; color: var(--text-dark); font-size: 16px; }
   .form-group { margin-bottom: 14px; }
   .form-group label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
   .form-group label span.action-span { color: var(--primary); cursor: pointer; }
@@ -593,7 +597,10 @@
 
 <div class="modal-overlay" id="taskModalOverlay">
   <div class="modal-content">
-    <div class="modal-header-title" id="modalHeaderTitle">Dersi Düzenle</div>
+    <div class="modal-header-title task-modal-header">
+      <span id="modalHeaderTitle">Dersi Düzenle</span>
+      <button type="button" class="modal-close-btn" id="btnTaskModalClose" aria-label="Kapat" title="Kapat">✕</button>
+    </div>
     <form id="taskForm">
       <div class="form-group">
         <label>Ders * <span class="action-span">Manuel Gir ✏️</span></label>
@@ -1346,12 +1353,14 @@
         const card = document.createElement('div');
         card.className = `task-item ${isDone ? 'completed' : 'pending'}`;
         
-        let descText = entry.detaylar || (entry.kaynak ? `${entry.kaynak}: ${entry.hedef} soru hedeflendi.` : `${entry.hedef} soru hedeflendi.`);
-
         card.innerHTML = `
           <div class="task-info-side" onclick="openEditModal('${entry.id}', '${currentDate}')">
             <div class="task-title">${escapeHtml(entry.ders)}</div>
-            <div class="task-desc">${escapeHtml(descText)}</div>
+            <div class="task-details">
+              ${entry.kaynak ? `<div class="task-detail-line">Kaynak: ${escapeHtml(entry.kaynak)}</div>` : ''}
+              ${entry.detaylar ? `<div class="task-detail-line">Not: ${escapeHtml(entry.detaylar)}</div>` : ''}
+              ${!entry.kaynak && !entry.detaylar ? `<div class="task-detail-line">${entry.hedef} soru hedeflendi.</div>` : ''}
+            </div>
             
             <div class="task-progress-wrapper">
               <div class="task-progress-bar">
@@ -1510,9 +1519,15 @@
   };
 
   const taskModalOverlay = document.getElementById('taskModalOverlay');
+  const taskModalContent = taskModalOverlay.querySelector('.modal-content');
   const btnModalDelete = document.getElementById('btnModalDelete');
   const btnModalCancel = document.getElementById('btnModalCancel');
   const btnModalToggleStatus = document.getElementById('btnModalToggleStatus');
+  document.getElementById('btnTaskModalClose').addEventListener('click', () => { taskModalOverlay.classList.remove('open'); });
+  const resetTaskModalScroll = () => {
+    taskModalContent.scrollTop = 0;
+    requestAnimationFrame(() => { taskModalContent.scrollTop = 0; });
+  };
 
   window.openNewModal = function(targetDate = currentDate) {
     editingId = null;
@@ -1527,7 +1542,9 @@
     btnModalToggleStatus.className = "btn-pill btn-pill-status";
     btnModalDelete.style.display = "none";
     
+    taskModalContent.scrollTop = 0;
     taskModalOverlay.classList.add('open');
+    resetTaskModalScroll();
   };
 
   window.openEditModal = function(id, dateKey = currentDate) {
@@ -1558,7 +1575,9 @@
     }
 
     btnModalDelete.style.display = "block";
+    taskModalContent.scrollTop = 0;
     taskModalOverlay.classList.add('open');
+    resetTaskModalScroll();
   };
 
   btnModalCancel.addEventListener('click', () => { taskModalOverlay.classList.remove('open'); });
