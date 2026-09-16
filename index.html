@@ -266,8 +266,27 @@
   .form-control {
     width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-color); border-radius: 14px; font-size: 14px;
     font-weight: 600; outline: none; background: var(--bg-main); color: var(--text-dark);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
-  .form-control:focus { border-color: var(--primary); background: var(--card-bg); }
+  .form-control:hover {
+    border-color: rgba(20, 184, 166, 0.45);
+  }
+  .form-control:focus {
+    border-color: var(--primary);
+    background: var(--card-bg);
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+    transform: translateY(-1px);
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    -webkit-appearance: none;
+  }
 
   .dyb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 6px; }
   .dyb-card { background: var(--bg-main); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 10px; text-align: center; }
@@ -631,25 +650,25 @@
 
       <div class="form-group">
         <label>Hedef Soru Sayısı *</label>
-        <input type="number" id="modalHedefInput" class="form-control" min="1" value="40" required>
+        <input type="number" id="modalHedefInput" class="form-control" min="1" placeholder="40" required>
       </div>
 
       <div class="form-group">
         <label>Çözülen Soru Sonucları</label>
         <div class="dyb-grid">
-          <div class="dyb-card d-card">
-            <label>Doğru</label>
-            <input type="number" id="modalDogruInput" class="form-control" min="0" value="0">
-          </div>
-          <div class="dyb-card y-card">
-            <label>Yanlış</label>
-            <input type="number" id="modalYanlisInput" class="form-control" min="0" value="0">
-          </div>
-          <div class="dyb-card b-card">
-            <label>Boş</label>
-            <input type="number" id="modalBosInput" class="form-control" min="0" value="0">
-          </div>
-        </div>
+  <div class="dyb-card d-card">
+    <label>Doğru</label>
+    <input type="number" id="modalDogruInput" class="form-control" min="0" placeholder="0">
+  </div>
+  <div class="dyb-card y-card">
+    <label>Yanlış</label>
+    <input type="number" id="modalYanlisInput" class="form-control" min="0" placeholder="0">
+  </div>
+  <div class="dyb-card b-card">
+    <label>Boş</label>
+    <input type="number" id="modalBosInput" class="form-control" min="0" placeholder="0">
+  </div>
+</div>
       </div>
 
       <div class="form-group">
@@ -1529,56 +1548,83 @@
     requestAnimationFrame(() => { taskModalContent.scrollTop = 0; });
   };
 
-  window.openNewModal = function(targetDate = currentDate) {
-    editingId = null;
-    document.getElementById('modalHeaderTitle').textContent = "Yeni Ders / Plan Ekle";
-    document.getElementById('taskForm').reset();
-    document.getElementById('modalDogruInput').value = 0;
-    document.getElementById('modalYanlisInput').value = 0;
-    document.getElementById('modalBosInput').value = 0;
-    if (modalDatePickerInstance) modalDatePickerInstance.setDate(targetDate);
-    
-    btnModalToggleStatus.textContent = "Tamamlandı Olarak İşaretle ✓";
-    btnModalToggleStatus.className = "btn-pill btn-pill-status";
-    btnModalDelete.style.display = "none";
-    
-    taskModalContent.scrollTop = 0;
-    taskModalOverlay.classList.add('open');
-    resetTaskModalScroll();
+  const clearScoreInputs = () => {
+    document.getElementById('modalDogruInput').value = '';
+    document.getElementById('modalYanlisInput').value = '';
+    document.getElementById('modalBosInput').value = '';
+    document.getElementById('modalHedefInput').value = '';
   };
+
+  document.getElementById('taskForm').addEventListener('reset', clearScoreInputs);
+
+  document.addEventListener('wheel', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLElement && target.matches('input[type="number"]')) {
+      event.preventDefault();
+    }
+  }, { passive: false });
+
+  window.openNewModal = function(targetDate = currentDate) {
+  editingId = null;
+  document.getElementById('modalHeaderTitle').textContent = "Yeni Ders / Plan Ekle";
+  
+  // Formu tamamen resetle
+  document.getElementById('taskForm').reset();
+  
+  // Kutucukların içinin boş gelmesi için değerleri net olarak temizleyin
+  document.getElementById('modalDogruInput').value = "";
+  document.getElementById('modalYanlisInput').value = "";
+  document.getElementById('modalBosInput').value = "";
+  document.getElementById('modalHedefInput').value = "";
+  document.getElementById('modalDetayInput').value = "";
+
+  if (modalDatePickerInstance) modalDatePickerInstance.setDate(targetDate);
+  
+  btnModalToggleStatus.textContent = "Tamamlandı Olarak İşaretle ✓";
+  btnModalToggleStatus.className = "btn-pill btn-pill-status";
+  btnModalDelete.style.display = "none";
+  
+  taskModalContent.scrollTop = 0;
+  taskModalOverlay.classList.add('open');
+  resetTaskModalScroll();
+};
 
   window.openEditModal = function(id, dateKey = currentDate) {
-    editingId = id;
-    const list = dataByDateMap[dateKey] || [];
-    const item = list.find(e => e.id === id);
-    if (!item) return;
+  editingId = id;
+  const list = dataByDateMap[dateKey] || [];
+  const item = list.find(e => e.id === id);
+  if (!item) return;
 
-    document.getElementById('modalHeaderTitle').textContent = "Dersi Düzenle";
-    document.getElementById('modalDersInput').value = item.ders || '';
-    document.getElementById('modalKonuInput').value = item.konu || '';
-    document.getElementById('modalKaynakInput').value = item.kaynak || '';
-    if (modalDatePickerInstance) modalDatePickerInstance.setDate(dateKey);
-    document.getElementById('modalHedefInput').value = item.hedef || 40;
-    document.getElementById('modalDogruInput').value = item.dogru || 0;
-    document.getElementById('modalYanlisInput').value = item.yanlis || 0;
-    document.getElementById('modalBosInput').value = item.bos || 0;
-    document.getElementById('modalDetayInput').value = item.detaylar || '';
+  document.getElementById('modalHeaderTitle').textContent = "Dersi Düzenle";
+  document.getElementById('modalDersInput').value = item.ders || '';
+  document.getElementById('modalKonuInput').value = item.konu || '';
+  document.getElementById('modalKaynakInput').value = item.kaynak || '';
+  if (modalDatePickerInstance) modalDatePickerInstance.setDate(dateKey);
+  
+  document.getElementById('modalHedefInput').value = item.hedef || '';
 
-    const cozulen = (item.dogru || 0) + (item.yanlis || 0) + (item.bos || 0);
-    const isDone = item.manualDone || (cozulen >= item.hedef && item.hedef > 0);
-    if (isDone) {
-      btnModalToggleStatus.textContent = "Tamamlanmadı Olarak İşaretle ✕";
-      btnModalToggleStatus.className = "btn-pill btn-pill-status completed-state";
-    } else {
-      btnModalToggleStatus.textContent = "Tamamlandı Olarak İşaretle ✓";
-      btnModalToggleStatus.className = "btn-pill btn-pill-status";
-    }
+  document.getElementById('modalDogruInput').value = '';
+  document.getElementById('modalYanlisInput').value = '';
+  document.getElementById('modalBosInput').value = '';
 
-    btnModalDelete.style.display = "block";
-    taskModalContent.scrollTop = 0;
-    taskModalOverlay.classList.add('open');
-    resetTaskModalScroll();
-  };
+  document.getElementById('modalDetayInput').value = item.detaylar || '';
+
+  const cozulen = (item.dogru || 0) + (item.yanlis || 0) + (item.bos || 0);
+  const isDone = item.manualDone || (cozulen >= item.hedef && item.hedef > 0);
+  
+  if (isDone) {
+    btnModalToggleStatus.textContent = "Tamamlanmadı Olarak İşaretle ✕";
+    btnModalToggleStatus.className = "btn-pill btn-pill-status completed-state";
+  } else {
+    btnModalToggleStatus.textContent = "Tamamlandı Olarak İşaretle ✓";
+    btnModalToggleStatus.className = "btn-pill btn-pill-status";
+  }
+
+  btnModalDelete.style.display = "block";
+  taskModalContent.scrollTop = 0;
+  taskModalOverlay.classList.add('open');
+  resetTaskModalScroll();
+};
 
   btnModalCancel.addEventListener('click', () => { taskModalOverlay.classList.remove('open'); });
 
@@ -1610,14 +1656,21 @@
 
   document.getElementById('taskForm').addEventListener('submit', (e) => {
     e.preventDefault();
+    const readNumericOrDefault = (id, fallback = 0) => {
+      const value = document.getElementById(id).value;
+      if (value === '') return fallback;
+      const parsed = Number.parseInt(value, 10);
+      return Number.isNaN(parsed) ? fallback : parsed;
+    };
+
     const ders = document.getElementById('modalDersInput').value.trim();
     const konu = document.getElementById('modalKonuInput').value.trim();
     const kaynak = document.getElementById('modalKaynakInput').value.trim();
     const targetDate = document.getElementById('modalTarihInput').value || currentDate;
-    const hedef = parseInt(document.getElementById('modalHedefInput').value) || 40;
-    const dogru = parseInt(document.getElementById('modalDogruInput').value) || 0;
-    const yanlis = parseInt(document.getElementById('modalYanlisInput').value) || 0;
-    const bos = parseInt(document.getElementById('modalBosInput').value) || 0;
+    const hedef = readNumericOrDefault('modalHedefInput', 40);
+    const dogru = readNumericOrDefault('modalDogruInput');
+    const yanlis = readNumericOrDefault('modalYanlisInput');
+    const bos = readNumericOrDefault('modalBosInput');
     const detaylar = document.getElementById('modalDetayInput').value.trim();
 
     if (!dataByDateMap[targetDate]) dataByDateMap[targetDate] = [];
