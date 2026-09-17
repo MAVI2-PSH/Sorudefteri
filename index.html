@@ -143,6 +143,73 @@
     background: var(--card-bg); border-radius: 18px; padding: 16px; border: 1px solid var(--border-color);
     box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 12px;
   }
+  .insight-grid {
+    display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; margin: 18px 0 20px;
+  }
+  .insight-card {
+    background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px;
+    padding: 16px; box-shadow: var(--card-shadow);
+  }
+  .insight-card.wide { grid-column: span 1; }
+  .insight-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .insight-eyebrow { font-size: 11px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .insight-title { font-size: 18px; font-weight: 800; color: var(--text-dark); }
+  .insight-tag {
+    background: rgba(20, 184, 166, 0.12); color: var(--primary); border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800;
+  }
+  .trend-chart {
+    display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end; gap: 10px; height: 150px; margin-top: 6px;
+  }
+  .trend-day { display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+  .trend-bar-wrap { width: 100%; max-width: 26px; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .trend-bar {
+    width: 100%; max-width: 24px; border-radius: 10px 10px 0 0; background: linear-gradient(180deg, #2dd4bf 0%, #0f766e 100%);
+    min-height: 10px; box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18); transition: all 0.2s ease;
+    position: relative;
+  }
+  .trend-day:hover .trend-bar,
+  .trend-day.is-today .trend-bar {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 12px 24px rgba(45, 212, 191, 0.38), 0 0 0 3px rgba(45, 212, 191, 0.18);
+    background: linear-gradient(180deg, #5eead4 0%, #14b8a6 100%);
+  }
+  .trend-day.is-today .trend-value,
+  .trend-day.is-today .trend-label {
+    color: #a7f3d0;
+    font-weight: 800;
+  }
+  .trend-label { font-size: 10px; color: var(--text-muted); font-weight: 700; }
+  .trend-value { font-size: 10px; font-weight: 800; color: var(--primary); }
+  .goal-meter { background: rgba(148, 163, 184, 0.18); border-radius: 999px; height: 12px; overflow: hidden; margin-top: 20px; }
+  .goal-meter-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #22c55e 0%, #14b8a6 100%); transition: width 0.25s ease; }
+  .goal-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); font-weight: 700; margin-top: 10px; }
+  .subject-list { display: flex; flex-direction: column; gap: 10px; }
+  .subject-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 18px; border: 1px solid rgba(148, 163, 184, 0.22); border-radius: 14px;
+    background: rgba(15, 23, 42, 0.24); box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    min-height: 74px; position: relative; overflow: hidden;
+  }
+  .subject-row::before {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: linear-gradient(180deg, #2dd4bf 0%, #0f766e 100%); border-radius: 999px;
+  }
+  .subject-row strong {
+    display: block; font-size: 15px; color: var(--text-dark); line-height: 1.3; margin-bottom: 4px;
+  }
+  .subject-meta {
+    font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.01em;
+  }
+  .subject-score {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 96px; padding: 8px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 800; color: #5eead4;
+    background: rgba(45, 212, 191, 0.12); border: 1px solid rgba(45, 212, 191, 0.22);
+    text-align: center;
+  }
+  .subject-row.top-score .subject-score { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.25); color: #86efac; }
+  .subject-row.low-score .subject-score { background: rgba(251, 146, 60, 0.12); border-color: rgba(251, 146, 60, 0.25); color: #fbbf24; }
+  .subject-row .subject-score::before { content: ""; }
+  @media(max-width: 760px) { .insight-grid { grid-template-columns: 1fr; } .subject-row { padding: 14px 14px; } .subject-score { min-width: 84px; } }
   .stat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
   .stat-info .num { font-size: 20px; font-weight: 800; line-height: 1.1; color: var(--text-dark); }
   .stat-info .lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-weight: 600; }
@@ -261,8 +328,18 @@
   .task-modal-header { display: flex; justify-content: space-between; align-items: center; }
   .modal-close-btn { background: var(--border-color); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: 700; color: var(--text-dark); font-size: 16px; }
   .form-group { margin-bottom: 14px; }
-  .form-group label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+  .form-group label { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
   .form-group label span.action-span { color: var(--primary); cursor: pointer; }
+  .score-reset-btn {
+    border: none; background: rgba(20, 184, 166, 0.12); color: var(--primary); font-size: 11px; font-weight: 800;
+    border-radius: 999px; padding: 5px 10px; cursor: pointer; transition: all 0.2s ease;
+  }
+  .score-reset-btn:hover { background: rgba(20, 184, 166, 0.18); transform: translateY(-1px); }
+  .score-zero-btn {
+    border: none; background: rgba(15, 118, 110, 0.12); color: #0f766e; font-size: 11px; font-weight: 800;
+    border-radius: 999px; padding: 5px 10px; cursor: pointer; transition: all 0.2s ease; margin-left: 6px;
+  }
+  .score-zero-btn:hover { background: rgba(15, 118, 110, 0.18); transform: translateY(-1px); }
   .form-control {
     width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-color); border-radius: 14px; font-size: 14px;
     font-weight: 600; outline: none; background: var(--bg-main); color: var(--text-dark);
@@ -456,6 +533,45 @@
       </div>
     </div>
 
+    <div class="insight-grid">
+      <div class="insight-card wide">
+        <div class="insight-header">
+          <div>
+            <div class="insight-eyebrow">Haftalık Gelişim</div>
+            <div class="insight-title">Çözüm Takibi</div>
+          </div>
+          <div class="insight-tag" id="weeklyTrendSummary">0 soru</div>
+        </div>
+        <div class="trend-chart" id="weeklyTrendChart"></div>
+      </div>
+
+      <div class="insight-card">
+        <div class="insight-header">
+          <div>
+            <div class="insight-eyebrow">Bugün</div>
+            <div class="insight-title">Hedef</div>
+          </div>
+          <div class="insight-tag" id="goalProgressLabel">%0</div>
+        </div>
+        <div class="goal-meter">
+          <div class="goal-meter-fill" id="goalProgressFill"></div>
+        </div>
+        <div class="goal-meta">
+          <span id="goalSolvedText">0/0 soru</span>
+          <span id="goalRemainingText">Kalan 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-card" style="margin-bottom: 22px;">
+      <div class="main-card-header">
+        <div class="main-card-title"><span>📊</span> Ders Başarı Özeti</div>
+      </div>
+      <div class="card-body-content">
+        <div class="subject-list" id="subjectPerformanceList"></div>
+      </div>
+    </div>
+
     <div class="view-tabs">
       <button class="tab-btn active" id="tabTodayBtn">Bugünkü Planım</button>
       <button class="tab-btn" id="tabWeeklyBtn">Haftalık Görünüm</button>
@@ -629,7 +745,7 @@
       <span id="modalHeaderTitle">Dersi Düzenle</span>
       <button type="button" class="modal-close-btn" id="btnTaskModalClose" aria-label="Kapat" title="Kapat">✕</button>
     </div>
-    <form id="taskForm">
+    <form id="taskForm" novalidate>
       <div class="form-group">
         <label>Ders * <span class="action-span">Manuel Gir ✏️</span></label>
         <input type="text" id="modalDersInput" class="form-control" placeholder="Örn: Matematik, Kimya" required>
@@ -659,23 +775,29 @@
 
       <div class="form-group">
         <label>Hedef Soru Sayısı *</label>
-        <input type="number" id="modalHedefInput" class="form-control" min="1" placeholder="40" required>
+        <input type="text" id="modalHedefInput" class="form-control" inputmode="numeric" placeholder="40" required>
       </div>
 
       <div class="form-group">
-        <label>Çözülen Soru Sonucları</label>
+        <label>
+          <span>Çözülen Soru Sonucları</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" class="score-zero-btn" id="btnZeroScoreInputs">0 olarak yaz</button>
+            <button type="button" class="score-reset-btn" id="btnResetScoreInputs">Sıfırla</button>
+          </div>
+        </label>
         <div class="dyb-grid">
   <div class="dyb-card d-card">
     <label>Doğru</label>
-    <input type="number" id="modalDogruInput" class="form-control" min="0" placeholder="0">
+    <input type="text" id="modalDogruInput" class="form-control" inputmode="numeric" placeholder="0">
   </div>
   <div class="dyb-card y-card">
     <label>Yanlış</label>
-    <input type="number" id="modalYanlisInput" class="form-control" min="0" placeholder="0">
+    <input type="text" id="modalYanlisInput" class="form-control" inputmode="numeric" placeholder="0">
   </div>
   <div class="dyb-card b-card">
     <label>Boş</label>
-    <input type="number" id="modalBosInput" class="form-control" min="0" placeholder="0">
+    <input type="text" id="modalBosInput" class="form-control" inputmode="numeric" placeholder="0">
   </div>
 </div>
       </div>
@@ -758,6 +880,7 @@
   let denemeList = [];
   let currentDate = todayKey();
   let editingId = null;
+  let modalOriginalScores = { dogru: 0, yanlis: 0, bos: 0 };
   let unsubscribeUserData = null;
   let modalDatePickerInstance = null;
   let selectedAvatar = '🎓';
@@ -1306,6 +1429,122 @@
     renderMonthlyView();
   });
 
+  function getLastSevenDays() {
+    const result = [];
+    const start = new Date();
+    const dayIndex = start.getDay() === 0 ? 6 : start.getDay() - 1;
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - dayIndex);
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const total = (dataByDateMap[key] || []).reduce((sum, item) => sum + ((item.dogru || 0) + (item.yanlis || 0) + (item.bos || 0)), 0);
+      result.push({
+        key,
+        label: date.toLocaleDateString('tr-TR', { weekday: 'short' }).replace('.', '').slice(0, 2),
+        total
+      });
+    }
+
+    return result;
+  }
+
+  function renderWeeklyTrend() {
+    const chart = document.getElementById('weeklyTrendChart');
+    const summary = document.getElementById('weeklyTrendSummary');
+    if (!chart || !summary) return;
+
+    const weekData = getLastSevenDays();
+    const totalWeek = weekData.reduce((sum, day) => sum + day.total, 0);
+    summary.textContent = `${totalWeek} soru`;
+    chart.innerHTML = '';
+
+    const maxValue = Math.max(...weekData.map(d => d.total), 1);
+    weekData.forEach((day) => {
+      const barWrap = document.createElement('div');
+      const isToday = day.key === todayKey();
+      barWrap.className = `trend-day ${isToday ? 'is-today' : ''}`;
+
+      const value = document.createElement('div');
+      value.className = 'trend-value';
+      value.textContent = day.total;
+
+      const barBox = document.createElement('div');
+      barBox.className = 'trend-bar-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'trend-bar';
+      bar.style.height = `${Math.max(14, (day.total / maxValue) * 100)}%`;
+      barBox.appendChild(bar);
+
+      const label = document.createElement('div');
+      label.className = 'trend-label';
+      label.textContent = day.label;
+
+      barWrap.appendChild(value);
+      barWrap.appendChild(barBox);
+      barWrap.appendChild(label);
+      chart.appendChild(barWrap);
+    });
+  }
+
+  function renderGoalProgress() {
+    const goalFill = document.getElementById('goalProgressFill');
+    const goalLabel = document.getElementById('goalProgressLabel');
+    const goalSolvedText = document.getElementById('goalSolvedText');
+    const goalRemainingText = document.getElementById('goalRemainingText');
+
+    if (!goalFill || !goalLabel || !goalSolvedText || !goalRemainingText) return;
+
+    const dailyGoal = Number(userProfileData.dailyGoal) || 150;
+    const todayTotal = (dataByDateMap[currentDate] || []).reduce((sum, item) => sum + ((item.dogru || 0) + (item.yanlis || 0) + (item.bos || 0)), 0);
+    const percent = Math.min(100, Math.round((todayTotal / dailyGoal) * 100));
+    const remaining = Math.max(0, dailyGoal - todayTotal);
+
+    goalFill.style.width = `${percent}%`;
+    goalLabel.textContent = `%${percent}`;
+    goalSolvedText.textContent = `${todayTotal}/${dailyGoal} soru`;
+    goalRemainingText.textContent = `Kalan ${remaining}`;
+  }
+
+  function renderSubjectPerformance() {
+    const list = document.getElementById('subjectPerformanceList');
+    if (!list) return;
+
+    const map = {};
+    Object.keys(dataByDateMap).forEach((dateKey) => {
+      (dataByDateMap[dateKey] || []).forEach((entry) => {
+        const key = (entry.konu || 'Genel').trim() || 'Genel';
+        const total = (entry.dogru || 0) + (entry.yanlis || 0) + (entry.bos || 0);
+        map[key] = (map[key] || 0) + total;
+      });
+    });
+
+    const rows = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (rows.length === 0) {
+      list.innerHTML = '<div class="empty-msg">Henüz ders verisi yok.</div>';
+      return;
+    }
+
+    const maxValue = Math.max(...rows.map(([, val]) => val), 1);
+    const topValue = rows[0][1];
+
+    list.innerHTML = rows.map(([subject, value], index) => {
+      const pct = Math.min(100, Math.round((value / maxValue) * 100));
+      const rowClass = index === 0 ? 'subject-row top-score' : (value < maxValue / 2 ? 'subject-row low-score' : 'subject-row');
+      return `
+        <div class="${rowClass}">
+          <div>
+            <strong>${escapeHtml(subject)}</strong>
+            <div class="subject-meta">${pct}% toplam katkı</div>
+          </div>
+          <div class="subject-score">${value} soru</div>
+        </div>
+      `;
+    }).join('');
+  }
+
   function renderMonthlyView() {
     const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
     document.getElementById('monthlyTitle').textContent = `${monthNames[monthlyCurrentMonth]} ${monthlyCurrentYear}`;
@@ -1470,6 +1709,10 @@
     document.getElementById('statWeeklyPercent').textContent = `%${wPct}`;
     document.getElementById('statWeeklySolved').textContent = weekSolved;
     document.getElementById('statMonthlySolved').textContent = monthSolved;
+
+    renderWeeklyTrend();
+    renderGoalProgress();
+    renderSubjectPerformance();
   }
 
   function renderWeeklyView() {
@@ -1564,6 +1807,42 @@
     document.getElementById('modalHedefInput').value = '';
   };
 
+  document.getElementById('btnZeroScoreInputs').addEventListener('click', () => {
+    document.getElementById('modalDogruInput').value = '0';
+    document.getElementById('modalYanlisInput').value = '0';
+    document.getElementById('modalBosInput').value = '0';
+  });
+
+  document.getElementById('btnResetScoreInputs').addEventListener('click', () => {
+    const targetDate = document.getElementById('modalTarihInput').value || currentDate;
+    if (!editingId) {
+      document.getElementById('modalDogruInput').value = '0';
+      document.getElementById('modalYanlisInput').value = '0';
+      document.getElementById('modalBosInput').value = '0';
+      return;
+    }
+
+    const list = dataByDateMap[targetDate] || [];
+    const item = list.find(e => e.id === editingId);
+    if (!item) {
+      document.getElementById('modalDogruInput').value = '0';
+      document.getElementById('modalYanlisInput').value = '0';
+      document.getElementById('modalBosInput').value = '0';
+      return;
+    }
+
+    item.dogru = 0;
+    item.yanlis = 0;
+    item.bos = 0;
+    item.manualDone = false;
+
+    saveToCloud();
+    render();
+    if (weeklySection.style.display !== 'none') renderWeeklyView();
+    if (monthlySection.style.display !== 'none') renderMonthlyView();
+    taskModalOverlay.classList.remove('open');
+  });
+
   document.getElementById('taskForm').addEventListener('reset', clearScoreInputs);
 
   document.addEventListener('wheel', (event) => {
@@ -1577,10 +1856,7 @@
   editingId = null;
   document.getElementById('modalHeaderTitle').textContent = "Yeni Ders / Plan Ekle";
   
-  // Formu tamamen resetle
   document.getElementById('taskForm').reset();
-  
-  // Kutucukların içinin boş gelmesi için değerleri net olarak temizleyin
   document.getElementById('modalDogruInput').value = "";
   document.getElementById('modalYanlisInput').value = "";
   document.getElementById('modalBosInput').value = "";
@@ -1604,6 +1880,12 @@
   const item = list.find(e => e.id === id);
   if (!item) return;
 
+  modalOriginalScores = {
+    dogru: Number(item.dogru) || 0,
+    yanlis: Number(item.yanlis) || 0,
+    bos: Number(item.bos) || 0
+  };
+
   document.getElementById('modalHeaderTitle').textContent = "Dersi Düzenle";
   document.getElementById('modalDersInput').value = item.ders || '';
   document.getElementById('modalKonuInput').value = item.konu || '';
@@ -1611,11 +1893,9 @@
   if (modalDatePickerInstance) modalDatePickerInstance.setDate(dateKey);
   
   document.getElementById('modalHedefInput').value = item.hedef || '';
-
   document.getElementById('modalDogruInput').value = '';
   document.getElementById('modalYanlisInput').value = '';
   document.getElementById('modalBosInput').value = '';
-
   document.getElementById('modalDetayInput').value = item.detaylar || '';
 
   const cozulen = (item.dogru || 0) + (item.yanlis || 0) + (item.bos || 0);
@@ -1663,6 +1943,26 @@
     }
   });
 
+  document.querySelectorAll('#taskForm input[type="text"]').forEach((inputEl) => {
+    const allowNegative = ['modalHedefInput', 'modalDogruInput', 'modalYanlisInput', 'modalBosInput'].includes(inputEl.id);
+    inputEl.addEventListener('input', () => {
+      let val = inputEl.value;
+      if (allowNegative) {
+        const sanitized = val.replace(/[^0-9-]/g, '');
+        if (sanitized === '-' || sanitized === '') {
+          inputEl.value = sanitized;
+          return;
+        }
+        const startsWithMinus = sanitized.startsWith('-');
+        const digitsOnly = sanitized.replace(/-/g, '');
+        const normalized = digitsOnly === '' ? '' : (startsWithMinus ? '-' : '') + digitsOnly;
+        inputEl.value = normalized;
+      } else {
+        inputEl.value = val.replace(/[^\d]/g, '');
+      }
+    });
+  });
+
   document.getElementById('taskForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const readNumericOrDefault = (id, fallback = 0) => {
@@ -1677,9 +1977,10 @@
     const kaynak = document.getElementById('modalKaynakInput').value.trim();
     const targetDate = document.getElementById('modalTarihInput').value || currentDate;
     const hedef = readNumericOrDefault('modalHedefInput', 40);
-    const dogru = readNumericOrDefault('modalDogruInput');
-    const yanlis = readNumericOrDefault('modalYanlisInput');
-    const bos = readNumericOrDefault('modalBosInput');
+
+    const dogru = readNumericOrDefault('modalDogruInput') + (editingId ? modalOriginalScores.dogru : 0);
+    const yanlis = readNumericOrDefault('modalYanlisInput') + (editingId ? modalOriginalScores.yanlis : 0);
+    const bos = readNumericOrDefault('modalBosInput') + (editingId ? modalOriginalScores.bos : 0);
     const detaylar = document.getElementById('modalDetayInput').value.trim();
 
     if (!dataByDateMap[targetDate]) dataByDateMap[targetDate] = [];
