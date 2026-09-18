@@ -921,7 +921,97 @@
   };
 
   let timerSeconds = 0;
+  let timerBaseSeconds = 0;
   let timerInterval = null;
+  let timerStartedAt = null;
+
+  function updateTimerDisplay() {
+    const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
+    const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
+    const s = String(timerSeconds % 60).padStart(2, '0');
+    document.getElementById('timerDisplay').textContent = `${h}:${m}:${s}`;
+  }
+
+  function saveTimerState() {
+    const timerState = {
+      isRunning: Boolean(timerInterval),
+      baseSeconds: timerSeconds,
+      startedAt: timerStartedAt
+    };
+    localStorage.setItem('studyTimerState', JSON.stringify(timerState));
+  }
+
+  function restoreTimerState() {
+    const raw = localStorage.getItem('studyTimerState');
+    if (!raw) {
+      updateTimerDisplay();
+      return;
+    }
+
+    try {
+      const timerState = JSON.parse(raw);
+      if (!timerState) {
+        updateTimerDisplay();
+        return;
+      }
+
+      timerBaseSeconds = Number(timerState.baseSeconds) || 0;
+      timerSeconds = timerBaseSeconds;
+
+      if (timerState.isRunning && timerState.startedAt) {
+        const elapsedSeconds = Math.floor((Date.now() - Number(timerState.startedAt)) / 1000);
+        timerSeconds = timerBaseSeconds + elapsedSeconds;
+        timerStartedAt = Date.now();
+        timerBaseSeconds = timerSeconds;
+        startTimer();
+      } else {
+        timerStartedAt = null;
+      }
+    } catch (error) {
+      console.error('Timer restore error:', error);
+      timerSeconds = 0;
+      timerBaseSeconds = 0;
+      timerStartedAt = null;
+    }
+
+    updateTimerDisplay();
+  }
+
+  function startTimer() {
+    if (timerInterval) return;
+
+    const savedState = JSON.parse(localStorage.getItem('studyTimerState') || '{}');
+    timerBaseSeconds = Number(savedState.baseSeconds) || timerSeconds;
+    timerStartedAt = Date.now();
+
+    timerInterval = setInterval(() => {
+      const elapsedSeconds = Math.floor((Date.now() - timerStartedAt) / 1000);
+      timerSeconds = timerBaseSeconds + elapsedSeconds;
+      updateTimerDisplay();
+
+      const nextState = {
+        isRunning: true,
+        baseSeconds: timerSeconds,
+        startedAt: Date.now()
+      };
+      localStorage.setItem('studyTimerState', JSON.stringify(nextState));
+    }, 1000);
+
+    document.getElementById('timerToggle').textContent = '⏸';
+    saveTimerState();
+  }
+
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    timerBaseSeconds = timerSeconds;
+    timerStartedAt = null;
+    document.getElementById('timerToggle').textContent = '▶';
+    saveTimerState();
+  }
 
   function todayKey() {
     const d = new Date();
@@ -1387,22 +1477,14 @@
   }
 
   document.getElementById('timerToggle').addEventListener('click', () => {
-    const btn = document.getElementById('timerToggle');
     if (timerInterval) {
-      clearInterval(timerInterval);
-      timerInterval = null;
-      btn.textContent = '▶';
+      stopTimer();
     } else {
-      btn.textContent = '⏸';
-      timerInterval = setInterval(() => {
-        timerSeconds++;
-        const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
-        const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
-        const s = String(timerSeconds % 60).padStart(2, '0');
-        document.getElementById('timerDisplay').textContent = `${h}:${m}:${s}`;
-      }, 1000);
+      startTimer();
     }
   });
+
+  restoreTimerState();
 
   const tabTodayBtn = document.getElementById('tabTodayBtn');
   const tabWeeklyBtn = document.getElementById('tabWeeklyBtn');
@@ -1640,6 +1722,7 @@
 
         const card = document.createElement('div');
         card.className = `task-item ${isDone ? 'completed' : 'pending'}`;
+        const kalan = Math.max(0, hedef - cozulen);
         
         card.innerHTML = `
           <div class="task-info-side" onclick="openEditModal('${entry.id}', '${currentDate}')">
@@ -1664,12 +1747,17 @@
               ${entry.konu ? `<span>📌 ${escapeHtml(entry.konu)}</span>` : ''}
             </div>
             ${(entry.dogru || entry.yanlis || entry.bos) ? `
-              <div class="result-pills">
-                <span class="res-pill d">D: ${entry.dogru || 0}</span>
-                <span class="res-pill y">Y: ${entry.yanlis || 0}</span>
-                <span class="res-pill b">B: ${entry.bos || 0}</span>
+              <div class="result-pills" style="justify-content: space-between; align-items: center; width: 100%;">
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <span class="res-pill d">D: ${entry.dogru || 0}</span>
+                  <span class="res-pill y">Y: ${entry.yanlis || 0}</span>
+                  <span class="res-pill b">B: ${entry.bos || 0}</span>
+                </div>
+                <div style="font-size:10px; color:var(--text-muted); font-weight:700; white-space:nowrap;">Kalan: ${kalan}</div>
               </div>
-            ` : ''}
+            ` : `
+              <div style="font-size:10px; color:var(--text-muted); font-weight:700; margin-top:6px;">Kalan: ${kalan}</div>
+            `}
           </div>
           <div class="task-check-icon" onclick="toggleTaskStatus(event, '${entry.id}', '${currentDate}')">
             ${isDone ? '✓' : ''}
@@ -1763,6 +1851,7 @@
         const oran = Math.min(Math.round((cozulen / hedef) * 100), 100);
         const isDone = t.manualDone || (cozulen >= t.hedef && t.hedef > 0);
         
+        const kalan = Math.max(0, hedef - cozulen);
         tasksHtml += `
           <div class="day-task-pill ${isDone ? 'done' : ''}" onclick="openEditModal('${t.id}', '${dateKey}')">
             <div style="display:flex; justify-content:space-between; width:100%;">
@@ -1770,10 +1859,13 @@
               <span>${cozulen}/${hedef} Soru</span>
             </div>
             ${t.konu ? `<div class="day-task-topic">Konu: ${escapeHtml(t.konu)}</div>` : ''}
-            <div class="day-task-results">
-              <span class="res-pill d">D: ${t.dogru || 0}</span>
-              <span class="res-pill y">Y: ${t.yanlis || 0}</span>
-              <span class="res-pill b">B: ${t.bos || 0}</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; width:100%;">
+              <div class="day-task-results">
+                <span class="res-pill d">D: ${t.dogru || 0}</span>
+                <span class="res-pill y">Y: ${t.yanlis || 0}</span>
+                <span class="res-pill b">B: ${t.bos || 0}</span>
+              </div>
+              <div style="font-size:10px; color:var(--text-muted); font-weight:700; white-space:nowrap;">Kalan: ${kalan}</div>
             </div>
             <div style="background:var(--border-color); height:5px; border-radius:3px; width:100%; overflow:hidden;">
               <div style="background:${isDone ? '#22c55e' : 'var(--primary)'}; height:100%; width:${oran}%;"></div>
