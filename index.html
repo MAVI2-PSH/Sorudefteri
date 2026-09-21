@@ -2057,6 +2057,11 @@
   });
 
   document.querySelectorAll('#taskForm input[type="text"]').forEach((inputEl) => {
+    const numericFieldIds = new Set(['modalHedefInput', 'modalDogruInput', 'modalYanlisInput', 'modalBosInput']);
+    const isNumericField = numericFieldIds.has(inputEl.id);
+
+    if (!isNumericField) return;
+
     const allowNegative = ['modalHedefInput', 'modalDogruInput', 'modalYanlisInput', 'modalBosInput'].includes(inputEl.id);
     inputEl.addEventListener('input', () => {
       let val = inputEl.value;
