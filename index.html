@@ -223,6 +223,28 @@
     padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
   }
   .main-card-title { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .collapse-toggle {
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 800;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .collapse-toggle:hover { background: rgba(255,255,255,0.18); transform: translateY(-1px); }
+  .main-card.collapsed .card-body-content {
+    display: none;
+  }
+  .main-card.collapsed .collapse-toggle {
+    transform: rotate(180deg);
+  }
   .progress-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; }
   .solved-badge { background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.3); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; }
 
@@ -301,6 +323,19 @@
   .month-day-cell:hover { border-color: var(--primary); transform: translateY(-1px); }
   .month-day-cell.other-month { opacity: 0.35; }
   .month-day-cell.is-today { border: 2px solid var(--primary); font-weight: 800; }
+  .month-day-cell.completed-day {
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.12), rgba(15, 118, 110, 0.04));
+    border-color: rgba(34, 197, 94, 0.7);
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.15);
+  }
+  .month-day-cell.completed-day .month-day-num { color: #15803d; }
+  .month-day-cell.completed-day .month-day-info { color: #15803d; }
+  .month-day-check {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #22c55e; color: white; font-size: 12px; font-weight: 900;
+    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.25);
+  }
   .month-day-num { font-weight: 800; color: var(--text-dark); }
   .month-day-info { font-size: 10px; font-weight: 700; color: var(--primary); text-align: right; }
 
@@ -572,9 +607,10 @@
       </div>
     </div>
 
-    <div class="main-card" style="margin-bottom: 22px;">
+    <div class="main-card" id="subjectSummaryCard" style="margin-bottom: 22px;">
       <div class="main-card-header">
         <div class="main-card-title"><span>📊</span> Ders Başarı Özeti</div>
+        <button type="button" class="collapse-toggle" id="toggleSubjectSummary" aria-expanded="true" aria-label="Ders başarı özetini kapat">▾</button>
       </div>
       <div class="card-body-content">
         <div class="subject-list" id="subjectPerformanceList"></div>
@@ -1459,6 +1495,8 @@
     }
   });
 
+
+
   function initModalDatePicker() {
     modalDatePickerInstance = flatpickr("#modalTarihInput", {
       dateFormat: "Y-m-d",
@@ -1483,6 +1521,11 @@
       startTimer();
     }
   });
+
+  const toggleSubjectSummaryBtn = document.getElementById('toggleSubjectSummary');
+  if (toggleSubjectSummaryBtn) {
+    toggleSubjectSummaryBtn.addEventListener('click', toggleSubjectSummaryCard);
+  }
 
   restoreTimerState();
 
@@ -1608,6 +1651,16 @@
     goalRemainingText.textContent = `Kalan ${remaining}`;
   }
 
+  function toggleSubjectSummaryCard() {
+    const card = document.getElementById('subjectSummaryCard');
+    const toggle = document.getElementById('toggleSubjectSummary');
+    if (!card || !toggle) return;
+
+    const isCollapsed = card.classList.toggle('collapsed');
+    toggle.setAttribute('aria-expanded', String(!isCollapsed));
+    toggle.setAttribute('aria-label', isCollapsed ? 'Ders başarı özetini aç' : 'Ders başarı özetini kapat');
+  }
+
   function renderSubjectPerformance() {
     const list = document.getElementById('subjectPerformanceList');
     if (!list) return;
@@ -1672,6 +1725,11 @@
       const dateKey = `${monthlyCurrentYear}-${String(monthlyCurrentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const dayTasks = dataByDateMap[dateKey] || [];
       const isToday = (dateKey === todayStr);
+      const allTasksDone = dayTasks.length > 0 && dayTasks.every((task) => {
+        const total = (task.dogru || 0) + (task.yanlis || 0) + (task.bos || 0);
+        const hedef = task.hedef || 1;
+        return !!(task.manualDone || (total >= hedef && hedef > 0));
+      });
 
       let daySolved = 0;
       dayTasks.forEach(t => {
@@ -1681,14 +1739,17 @@
       monthTotalSolved += daySolved;
 
       const cell = document.createElement('div');
-      cell.className = `month-day-cell ${isToday ? 'is-today' : ''}`;
+      cell.className = `month-day-cell ${isToday ? 'is-today' : ''} ${allTasksDone ? 'completed-day' : ''}`;
       cell.onclick = () => {
         currentDate = dateKey;
         tabTodayBtn.click();
       };
 
       cell.innerHTML = `
-        <div class="month-day-num">${day}</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          <div class="month-day-num">${day}</div>
+          ${allTasksDone ? '<div class="month-day-check">✓</div>' : ''}
+        </div>
         <div class="month-day-info">
           ${dayTasks.length > 0 ? `<div>📌 ${dayTasks.length} ders</div>` : ''}
           ${daySolved > 0 ? `<div>📝 ${daySolved} soru</div>` : ''}
