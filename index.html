@@ -157,11 +157,40 @@
   .insight-tag {
     background: rgba(20, 184, 166, 0.12); color: var(--primary); border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800;
   }
+  .weekly-trend-navigation { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 0 8px; }
+  .weekly-trend-navigation button {
+    width: 30px; height: 30px; border: 1px solid var(--border-color); border-radius: 9px; background: var(--card-bg);
+    color: var(--text-dark); font-size: 18px; line-height: 1; cursor: pointer;
+  }
+  .weekly-trend-navigation button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+  .weekly-trend-navigation button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .weekly-trend-range { color: var(--text-muted); font-size: 11px; font-weight: 700; text-align: center; }
   .trend-chart {
     display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end; gap: 10px; height: 150px; margin-top: 6px;
   }
-  .trend-day { display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; cursor: pointer; }
+  .trend-day {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  .trend-day:hover { transform: translateY(-2px); }
+  .trend-day::before {
+    content: ""; position: absolute; left: 50%; bottom: 18px; width: 1.5px; height: 0; background: rgba(45, 212, 191, 0.45);
+    transform: translateX(-50%); transition: height 0.2s ease, opacity 0.2s ease; opacity: 0;
+  }
+  .trend-day:hover::before,
+  .trend-day.is-today::before {
+    height: calc(100% - 20px); opacity: 1;
+  }
   .trend-bar-wrap { width: 100%; max-width: 26px; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .trend-tooltip {
+    position: absolute; left: 50%; top: 0; transform: translate(-50%, -8px); background: rgba(15, 23, 42, 0.96);
+    color: #f8fafc; border: 1px solid rgba(45, 212, 191, 0.5); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 800;
+    white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.18s ease, transform 0.18s ease;
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.28);
+  }
+  .trend-tooltip.visible {
+    opacity: 1; transform: translate(-50%, -16px);
+  }
   .trend-bar {
     width: 100%; max-width: 24px; border-radius: 10px 10px 0 0; background: linear-gradient(180deg, #2dd4bf 0%, #0f766e 100%);
     min-height: 10px; box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18); transition: all 0.2s ease; cursor: pointer;
@@ -448,16 +477,63 @@
     box-shadow: 0 8px 18px rgba(17, 94, 89, 0.22);
   }
 
-  .deneme-card { background: var(--bg-main); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  .deneme-card {
+    background: var(--bg-main); border: 1.5px solid var(--border-color); border-radius: 16px; padding: 14px; margin-bottom: 12px;
+    position: relative; overflow: hidden;
+  }
+  .deneme-card::before {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; border-radius: 16px 0 0 16px; background: var(--primary);
+  }
+  .deneme-card.is-ayt::before { background: linear-gradient(180deg, #fb7185 0%, #f97316 100%); }
+  .deneme-card.is-ayt { border-color: rgba(249, 115, 22, 0.35); background: rgba(249, 115, 22, 0.04); }
+  .deneme-card.is-ayt .deneme-net-badge { background: linear-gradient(135deg, #fb7185 0%, #f97316 100%); }
+  .deneme-card.is-ayt .deneme-header span:first-child { color: #fda4af; }
   .deneme-header { display: flex; justify-content: space-between; font-weight: 800; font-size: 15px; margin-bottom: 6px; }
   .deneme-net-badge { background: var(--primary); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 800; }
   .deneme-sub { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; }
 
-  .chart-bar-container { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-top: 20px; margin-top: 14px; border-bottom: 2px solid var(--border-color); }
-  .chart-bar-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
-  .chart-bar-fill { background: linear-gradient(to top, var(--primary), #2dd4bf); width: 100%; max-width: 24px; border-radius: 6px 6px 0 0; min-height: 4px; }
-  .chart-bar-label { font-size: 10px; font-weight: 700; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40px; }
-  .chart-bar-val { font-size: 10px; font-weight: 800; color: var(--primary); }
+  .chart-bar-container {
+    position: relative; display: block; height: 180px; padding: 10px 0 0; margin-top: 14px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.35); border-radius: 12px;
+    background: rgba(15, 23, 42, 0.94);
+  }
+  .chart-wave-svg {
+    width: 100%; height: 100%; display: block; overflow: visible;
+  }
+  .chart-wave-area {
+    fill: rgba(94, 234, 212, 0.2);
+  }
+  .chart-wave-line {
+    fill: none; stroke: #2dd4bf; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round;
+    filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.45));
+  }
+  .chart-wave-point {
+    fill: rgba(248, 250, 252, 0.9); stroke: #2dd4bf; stroke-width: 2; cursor: pointer;
+    transition: r 0.2s ease, filter 0.2s ease;
+  }
+  .chart-wave-point:hover,
+  .chart-wave-point:focus {
+    filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.75));
+  }
+  .chart-tooltip {
+    position: absolute; pointer-events: none; z-index: 3; background: rgba(15, 23, 42, 0.96);
+    color: #f8fafc; border: 1px solid rgba(45, 212, 191, 0.5); border-radius: 10px;
+    padding: 6px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; opacity: 0; transform: translate(-50%, -12px);
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.28); transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .chart-tooltip.visible {
+    opacity: 1; transform: translate(-50%, -16px);
+  }
+  .chart-wave-label {
+    font-size: 11px; font-weight: 600; fill: rgba(191, 219, 254, 0.82);
+    text-anchor: middle;
+  }
+  .chart-wave-value {
+    font-size: 12px; font-weight: 800; fill: #f8fafc; text-anchor: middle;
+  }
+  .chart-wave-gridline {
+    stroke: rgba(148, 163, 184, 0.18); stroke-width: 1;
+  }
 
   .empty-msg { text-align: center; color: var(--text-muted); font-size: 14px; padding: 24px 0; font-weight: 600; }
 
@@ -471,7 +547,17 @@
   .deneme-subject-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
   .deneme-subject-table th, .deneme-subject-table td { padding: 6px 8px; border: 1px solid var(--border-color); text-align: center; }
   .deneme-subject-table th { background: rgba(15, 118, 110, 0.1); color: var(--primary); font-weight: 800; }
-  .deneme-subject-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .deneme-subject-row {
+    display: grid; grid-template-columns: minmax(140px, 1.4fr) minmax(72px, 0.9fr) minmax(72px, 0.9fr);
+    gap: 8px; align-items: center; margin-bottom: 8px;
+    width: 100%;
+  }
+  .deneme-subject-row .sub-name {
+    display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 12px; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .deneme-subject-row .form-control {
+    min-height: 32px; padding: 6px 8px; font-size: 12px; text-align: center;
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
@@ -486,7 +572,6 @@
   </div>
   <div class="nav-menu">
     <a class="nav-item active" onclick="closeDrawer()"><span class="icon">🏠</span> Ana Sayfa</a>
-    <a class="nav-item" id="btnDrawerDeneme"><span class="icon">📈</span> Deneme Gelişimi</a>
     <a class="nav-item" id="btnDrawerProfile"><span class="icon">👤</span> Profilim</a>
     <a class="nav-item" id="btnDrawerWhatsapp"><span class="icon">💬</span> WhatsApp Raporu</a>
     <a class="nav-item" onclick="alert('Sorularım modülü yakında eklenecek!'); closeDrawer();"><span class="icon">📚</span> Soru Havuzu</a>
@@ -587,6 +672,11 @@
           <div class="insight-tag" id="weeklyTrendSummary">0 soru</div>
         </div>
         <div class="trend-chart" id="weeklyTrendChart"></div>
+        <div class="weekly-trend-navigation">
+          <button type="button" id="weeklyTrendPrev" aria-label="Önceki hafta" title="Önceki hafta">‹</button>
+          <span class="weekly-trend-range" id="weeklyTrendRange">Bu hafta</span>
+          <button type="button" id="weeklyTrendNext" aria-label="Sonraki hafta" title="Sonraki hafta" disabled>›</button>
+        </div>
       </div>
 
       <div class="insight-card">
@@ -607,13 +697,18 @@
       </div>
     </div>
 
-    <div class="main-card" id="subjectSummaryCard" style="margin-bottom: 22px;">
+    <div class="main-card" id="denemeDevelopmentCard" style="margin-bottom: 22px;">
       <div class="main-card-header">
-        <div class="main-card-title"><span>📊</span> Ders Başarı Özeti</div>
-        <button type="button" class="collapse-toggle" id="toggleSubjectSummary" aria-expanded="true" aria-label="Ders başarı özetini kapat">▾</button>
+        <div class="main-card-title"><span>📈</span> Deneme Gelişim</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button type="button" class="btn-ghost" id="btnAddDeneme" style="padding:8px 12px; flex:none; background:rgba(255,255,255,0.14); color:#fff; border:1px solid rgba(255,255,255,0.25);">+ Deneme Ekle</button>
+          <button type="button" class="collapse-toggle" id="toggleDenemeDevelopment" aria-expanded="true" aria-label="Deneme gelişimini kapat">▾</button>
+        </div>
       </div>
       <div class="card-body-content">
-        <div class="subject-list" id="subjectPerformanceList"></div>
+        <div class="chart-bar-container" id="denemeChartContainer">
+          <div style="margin:auto; font-size:12px; color:var(--text-muted);">Henüz deneme verisi yok.</div>
+        </div>
       </div>
     </div>
 
@@ -715,13 +810,6 @@
         <button type="submit" class="btn-primary" style="padding:10px 20px;">Ekle ✨</button>
       </div>
     </form>
-
-    <div style="margin-bottom:20px;">
-      <div style="font-weight:800; font-size:14px; color:var(--text-dark);">Son Denemelerin Toplam Net Grafiği</div>
-      <div class="chart-bar-container" id="denemeChartContainer">
-        <div style="margin:auto; font-size:12px; color:var(--text-muted);">Henüz eklenmiş deneme yok.</div>
-      </div>
-    </div>
 
     <div style="font-weight:800; font-size:14px; margin-bottom:10px; color:var(--text-dark);">Girilmiş Denemeler</div>
     <div id="denemeListContainer" style="max-height:260px; overflow-y:auto;"></div>
@@ -931,6 +1019,27 @@
   let selectedAvatar = '🎓';
   let monthlyCurrentYear = new Date().getFullYear();
   let monthlyCurrentMonth = new Date().getMonth();
+  let weeklyTrendOffset = 0;
+
+  function persistLocalDataBackup() {
+    localStorage.setItem('denemeListBackup', JSON.stringify(denemeList || []));
+    localStorage.setItem('dataByDateBackup', JSON.stringify(dataByDateMap || {}));
+  }
+
+  function restoreLocalDataBackup() {
+    try {
+      const savedDeneme = JSON.parse(localStorage.getItem('denemeListBackup') || '[]');
+      const savedDates = JSON.parse(localStorage.getItem('dataByDateBackup') || '{}');
+      if (Array.isArray(savedDeneme) && savedDeneme.length) {
+        denemeList = savedDeneme;
+      }
+      if (savedDates && typeof savedDates === 'object') {
+        dataByDateMap = savedDates;
+      }
+    } catch (error) {
+      console.warn('Local deneme backup restore failed:', error);
+    }
+  }
 
   const denemeSubjectTemplates = {
     TYT: [
@@ -1135,6 +1244,7 @@
 
   function startRealtimeSync() {
     if (!currentUser) return;
+    restoreLocalDataBackup();
     const userDocRef = doc(db, "users", currentUser.uid);
     unsubscribeUserData = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -1153,15 +1263,22 @@
           document.getElementById('btnToggleTheme').textContent = '☀️';
         }
 
-        dataByDateMap = data.dataByDate || {};
-        denemeList = data.denemeList || [];
+        dataByDateMap = data.dataByDate || dataByDateMap || {};
+        denemeList = data.denemeList || denemeList || [];
+        if (!Array.isArray(denemeList) || !denemeList.length) {
+          restoreLocalDataBackup();
+        }
+      } else {
+        restoreLocalDataBackup();
       }
+      persistLocalDataBackup();
       render();
     });
   }
 
   async function saveToCloud() {
     if (!currentUser) return;
+    persistLocalDataBackup();
     try {
       await setDoc(doc(db, "users", currentUser.uid), { dataByDate: dataByDateMap, denemeList }, { merge: true });
     } catch(e) { console.error("Cloud save error:", e); }
@@ -1169,17 +1286,25 @@
 
   const denemeModalOverlay = document.getElementById('denemeModalOverlay');
 
-  document.getElementById('btnDrawerDeneme').addEventListener('click', () => {
+  function openDenemeModal() {
     document.getElementById('denemeDateInput').value = todayKey();
     updateDenemeSubjectFields();
     renderDenemePanel();
     denemeModalOverlay.classList.add('open');
-    closeDrawer();
-  });
+  }
+
+  document.getElementById('btnAddDeneme').addEventListener('click', openDenemeModal);
 
   document.getElementById('btnCloseDenemeModal').addEventListener('click', () => {
     denemeModalOverlay.classList.remove('open');
   });
+
+  function ensureDenemeFieldsVisible() {
+    const typeInput = document.getElementById('denemeTypeInput');
+    if (typeInput && typeInput.value) {
+      updateDenemeSubjectFields();
+    }
+  }
 
   document.getElementById('denemeTypeInput').addEventListener('change', updateDenemeSubjectFields);
 
@@ -1187,6 +1312,8 @@
     const type = document.getElementById('denemeTypeInput').value;
     const subjects = denemeSubjectTemplates[type] || denemeSubjectTemplates.TYT;
     const container = document.getElementById('denemeSubjectsContainer');
+    if (!container) return;
+
     container.innerHTML = '';
 
     subjects.forEach((sub) => {
@@ -1194,13 +1321,21 @@
       row.className = 'deneme-subject-row';
       row.dataset.total = sub.total;
       row.innerHTML = `
-        <span style="font-weight:700; font-size:12px;" class="sub-name">${sub.name} <span style="font-weight:500; opacity:0.7;">(${sub.total} S)</span></span>
-        <input type="number" min="0" max="${sub.total}" value="0" placeholder="Yanlış" class="form-control sub-y" style="padding:6px; font-size:12px; text-align:center;">
-        <input type="number" min="0" max="${sub.total}" value="0" placeholder="Boş" class="form-control sub-b" style="padding:6px; font-size:12px; text-align:center;">
+        <span class="sub-name">${sub.name} <span style="font-weight:500; opacity:0.7;">(${sub.total} S)</span></span>
+        <input type="number" min="0" max="${sub.total}" value="0" placeholder="Yanlış" class="form-control sub-y" aria-label="${sub.name} yanlış sayısı">
+        <input type="number" min="0" max="${sub.total}" value="0" placeholder="Boş" class="form-control sub-b" aria-label="${sub.name} boş sayısı">
       `;
       container.appendChild(row);
     });
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const typeInput = document.getElementById('denemeTypeInput');
+    if (typeInput) {
+      typeInput.value = 'TYT';
+      ensureDenemeFieldsVisible();
+    }
+  });
 
   document.getElementById('denemeForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -1258,7 +1393,7 @@
 
     if (denemeList.length === 0) {
       listContainer.innerHTML = '<div class="empty-msg">Henüz kaydedilmiş deneme sınavı yok.</div>';
-      chartContainer.innerHTML = '<div style="margin:auto; font-size:12px; color:var(--text-muted);">Henüz grafik verisi yok.</div>';
+      chartContainer.innerHTML = '<div style="margin:auto; font-size:12px; color:#cbd5e1;">Henüz deneme verisi yok.</div>';
       return;
     }
 
@@ -1266,7 +1401,7 @@
 
     sorted.forEach(d => {
       const card = document.createElement('div');
-      card.className = 'deneme-card';
+      card.className = `deneme-card ${d.type === 'AYT' ? 'is-ayt' : ''}`;
 
       let tableRowsHtml = '';
       if (d.subjects && d.subjects.length > 0) {
@@ -1315,19 +1450,123 @@
 
     const chartData = [...denemeList].sort((a,b) => new Date(a.date) - new Date(b.date)).slice(-7);
     const maxNet = Math.max(...chartData.map(d => d.net), 10);
+    const minNet = 0;
+    const measuredWidth = chartContainer.clientWidth;
+    const width = measuredWidth > 100 ? measuredWidth : 640;
+    const height = 170;
+    const paddingX = 22;
+    const paddingY = 20;
+    const hasAytOnly = chartData.length > 0 && chartData.every(d => d.type === 'AYT');
+    const lineColor = hasAytOnly ? '#f97316' : '#2dd4bf';
+    const areaColor = hasAytOnly ? 'rgba(249, 115, 22, 0.18)' : 'rgba(94, 234, 212, 0.2)';
 
-    chartData.forEach(d => {
-      const pct = Math.min(100, Math.max(5, (d.net / maxNet) * 100));
-      const item = document.createElement('div');
-      item.className = 'chart-bar-item';
-      item.innerHTML = `
-        <span class="chart-bar-val">${d.net.toFixed(1)}</span>
-        <div class="chart-bar-fill" style="height: ${pct}%;"></div>
-        <span class="chart-bar-label">${escapeHtml(d.title)}</span>
-      `;
-      chartContainer.appendChild(item);
+    const points = chartData.map((d, index) => {
+      const x = paddingX + (index * (width - paddingX * 2)) / Math.max(chartData.length - 1, 1);
+      const ratio = (d.net - minNet) / Math.max(maxNet - minNet, 1);
+      const y = height - paddingY - (ratio * (height - paddingY * 2));
+      return { ...d, x, y };
     });
+
+    const buildSmoothPath = (pts) => {
+      if (!pts.length) return '';
+      if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const current = pts[i];
+        const next = pts[i + 1];
+        const cx = (current.x + next.x) / 2;
+        d += ` Q ${current.x} ${current.y} ${cx} ${(current.y + next.y) / 2}`;
+      }
+      const last = pts[pts.length - 1];
+      d += ` T ${last.x} ${last.y}`;
+      return d;
+    };
+
+    const linePath = buildSmoothPath(points);
+    const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('class', 'chart-wave-svg');
+
+    const baseline = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    baseline.setAttribute('x1', paddingX);
+    baseline.setAttribute('x2', width - paddingX);
+    baseline.setAttribute('y1', height - paddingY);
+    baseline.setAttribute('y2', height - paddingY);
+    baseline.setAttribute('class', 'chart-wave-gridline');
+
+    const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    area.setAttribute('d', areaPath);
+    area.setAttribute('class', 'chart-wave-area');
+    area.setAttribute('fill', areaColor);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', linePath);
+    line.setAttribute('class', 'chart-wave-line');
+    line.setAttribute('stroke', lineColor);
+    line.setAttribute('style', `filter: drop-shadow(0 0 8px ${lineColor}66);`);
+
+    svg.appendChild(baseline);
+    svg.appendChild(area);
+    svg.appendChild(line);
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'chart-tooltip';
+    tooltip.textContent = 'Net: 0.0';
+    chartContainer.appendChild(tooltip);
+
+    points.forEach((p) => {
+      const value = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      value.setAttribute('x', p.x);
+      value.setAttribute('y', p.y - 10);
+      value.setAttribute('class', 'chart-wave-value');
+      value.textContent = p.net.toFixed(1);
+
+      const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const pointColor = p.type === 'AYT' ? '#f97316' : '#2dd4bf';
+      point.setAttribute('cx', p.x);
+      point.setAttribute('cy', p.y);
+      point.setAttribute('r', 4.2);
+      point.setAttribute('class', 'chart-wave-point');
+      point.setAttribute('tabindex', '0');
+      point.setAttribute('fill', pointColor);
+      point.setAttribute('stroke', pointColor);
+
+      const showTooltip = (event) => {
+        const rect = chartContainer.getBoundingClientRect();
+        tooltip.textContent = `${p.title}: ${p.net.toFixed(1)} net`;
+        tooltip.style.left = `${p.x / width * rect.width}px`;
+        tooltip.style.top = `${(p.y / height) * rect.height - 8}px`;
+        tooltip.classList.add('visible');
+      };
+
+      const hideTooltip = () => tooltip.classList.remove('visible');
+      point.addEventListener('mouseenter', showTooltip);
+      point.addEventListener('mousemove', showTooltip);
+      point.addEventListener('mouseleave', hideTooltip);
+      point.addEventListener('focus', showTooltip);
+      point.addEventListener('blur', hideTooltip);
+
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('x', p.x);
+      label.setAttribute('y', height - 6);
+      label.setAttribute('class', 'chart-wave-label');
+      label.textContent = escapeHtml(p.title).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+
+      svg.appendChild(value);
+      svg.appendChild(point);
+      svg.appendChild(label);
+    });
+
+    chartContainer.appendChild(svg);
+    chartContainer.style.position = 'relative';
   }
+
+  const denemeChartResizeObserver = new ResizeObserver(() => {
+    if (denemeList.length) renderDenemePanel();
+  });
+  denemeChartResizeObserver.observe(document.getElementById('denemeChartContainer'));
 
   const profileModalOverlay = document.getElementById('profileModalOverlay');
   
@@ -1522,9 +1761,9 @@
     }
   });
 
-  const toggleSubjectSummaryBtn = document.getElementById('toggleSubjectSummary');
-  if (toggleSubjectSummaryBtn) {
-    toggleSubjectSummaryBtn.addEventListener('click', toggleSubjectSummaryCard);
+  const toggleDenemeDevelopmentBtn = document.getElementById('toggleDenemeDevelopment');
+  if (toggleDenemeDevelopmentBtn) {
+    toggleDenemeDevelopmentBtn.addEventListener('click', toggleDenemeDevelopmentCard);
   }
 
   restoreTimerState();
@@ -1568,7 +1807,7 @@
     const start = new Date();
     const dayIndex = start.getDay() === 0 ? 6 : start.getDay() - 1;
     start.setHours(0, 0, 0, 0);
-    start.setDate(start.getDate() - dayIndex);
+    start.setDate(start.getDate() - dayIndex + weeklyTrendOffset * 7);
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(start);
@@ -1585,15 +1824,39 @@
     return result;
   }
 
+  function formatWeekRange(weekData) {
+    const start = new Date(`${weekData[0].key}T00:00:00`);
+    const end = new Date(`${weekData[6].key}T00:00:00`);
+    const formatDay = (date) => `${date.getDate()} ${date.toLocaleDateString('tr-TR', { month: 'short' }).replace('.', '')}`;
+    const currentYear = new Date().getFullYear();
+    const startLabel = formatDay(start);
+    const endLabel = formatDay(end);
+
+    if (start.getFullYear() !== end.getFullYear()) {
+      return `${startLabel} ${start.getFullYear()} - ${endLabel} ${end.getFullYear()}`;
+    }
+    return start.getFullYear() === currentYear
+      ? `${startLabel} - ${endLabel}`
+      : `${startLabel} - ${endLabel} ${end.getFullYear()}`;
+  }
+
   function renderWeeklyTrend() {
     const chart = document.getElementById('weeklyTrendChart');
     const summary = document.getElementById('weeklyTrendSummary');
-    if (!chart || !summary) return;
+    const range = document.getElementById('weeklyTrendRange');
+    const nextButton = document.getElementById('weeklyTrendNext');
+    if (!chart || !summary || !range || !nextButton) return;
 
     const weekData = getLastSevenDays();
     const totalWeek = weekData.reduce((sum, day) => sum + day.total, 0);
     summary.textContent = `${totalWeek} soru`;
+    range.textContent = weeklyTrendOffset === 0 ? `Bu hafta · ${formatWeekRange(weekData)}` : formatWeekRange(weekData);
+    nextButton.disabled = weeklyTrendOffset >= 0;
     chart.innerHTML = '';
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'trend-tooltip';
+    chart.appendChild(tooltip);
 
     const maxValue = Math.max(...weekData.map(d => d.total), 1);
     weekData.forEach((day) => {
@@ -1625,12 +1888,33 @@
       label.className = 'trend-label';
       label.textContent = day.label;
 
+      barWrap.addEventListener('mouseenter', (event) => {
+        const rect = chart.getBoundingClientRect();
+        const dayRect = barWrap.getBoundingClientRect();
+        tooltip.textContent = `${day.total} soru`;
+        tooltip.style.left = `${dayRect.left - rect.left + dayRect.width / 2}px`;
+        tooltip.style.top = `${dayRect.top - rect.top - 6}px`;
+        tooltip.classList.add('visible');
+      });
+      barWrap.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+
       barWrap.appendChild(value);
       barWrap.appendChild(barBox);
       barWrap.appendChild(label);
       chart.appendChild(barWrap);
     });
   }
+
+  document.getElementById('weeklyTrendPrev').addEventListener('click', () => {
+    weeklyTrendOffset--;
+    renderWeeklyTrend();
+  });
+  document.getElementById('weeklyTrendNext').addEventListener('click', () => {
+    if (weeklyTrendOffset < 0) {
+      weeklyTrendOffset++;
+      renderWeeklyTrend();
+    }
+  });
 
   function renderGoalProgress() {
     const goalFill = document.getElementById('goalProgressFill');
@@ -1651,14 +1935,14 @@
     goalRemainingText.textContent = `Kalan ${remaining}`;
   }
 
-  function toggleSubjectSummaryCard() {
-    const card = document.getElementById('subjectSummaryCard');
-    const toggle = document.getElementById('toggleSubjectSummary');
+  function toggleDenemeDevelopmentCard() {
+    const card = document.getElementById('denemeDevelopmentCard');
+    const toggle = document.getElementById('toggleDenemeDevelopment');
     if (!card || !toggle) return;
 
     const isCollapsed = card.classList.toggle('collapsed');
     toggle.setAttribute('aria-expanded', String(!isCollapsed));
-    toggle.setAttribute('aria-label', isCollapsed ? 'Ders başarı özetini aç' : 'Ders başarı özetini kapat');
+    toggle.setAttribute('aria-label', isCollapsed ? 'Deneme gelişimini aç' : 'Deneme gelişimini kapat');
   }
 
   function renderSubjectPerformance() {
@@ -1882,7 +2166,7 @@
 
     renderWeeklyTrend();
     renderGoalProgress();
-    renderSubjectPerformance();
+    renderDenemePanel();
   }
 
   function renderWeeklyView() {
