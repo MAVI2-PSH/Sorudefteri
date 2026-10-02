@@ -242,6 +242,12 @@
   .stat-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
   .stat-info .num { font-size: 20px; font-weight: 800; line-height: 1.1; color: var(--text-dark); }
   .stat-info .lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-weight: 600; }
+  .stat-sub {
+    font-size: 10px; font-weight: 700; color: var(--primary); margin-top: 4px; letter-spacing: 0.02em;
+  }
+  .goal-target-line {
+    font-size: 11px; font-weight: 700; color: var(--primary); margin-top: 10px;
+  }
 
   .main-card {
     background: var(--card-bg); border-radius: 22px; border: 1px solid var(--border-color); overflow: hidden;
@@ -274,8 +280,33 @@
   .main-card.collapsed .collapse-toggle {
     transform: rotate(180deg);
   }
-  .progress-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; }
-  .solved-badge { background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.3); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; }
+  .progress-badge {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.22);
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    min-width: 46px;
+    line-height: 1.2;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    flex-shrink: 0;
+  }
+  .solved-badge {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.22);
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    flex-shrink: 0;
+  }
 
   .progress-bar-container { background: rgba(255,255,255,0.25); height: 8px; border-radius: 4px; width: 100px; overflow: hidden; }
   .progress-bar-fill { background: #4ade80; height: 100%; width: 0%; transition: width 0.3s; }
@@ -644,6 +675,7 @@
         <div class="stat-info">
           <div class="num" id="statWeeklyPercent">%0</div>
           <div class="lbl">Haftalık Plan</div>
+          <div class="stat-sub" id="statWeeklyTarget">Hedef: 0 soru</div>
         </div>
       </div>
       <div class="stat-card">
@@ -690,6 +722,7 @@
         <div class="goal-meter">
           <div class="goal-meter-fill" id="goalProgressFill"></div>
         </div>
+        <div class="goal-target-line" id="goalTargetText">Hedef: 0 soru</div>
         <div class="goal-meta">
           <span id="goalSolvedText">0/0 soru</span>
           <span id="goalRemainingText">Kalan 0</span>
@@ -723,13 +756,6 @@
         <div class="main-card-header">
           <div class="main-card-title">
             <span>📋</span> Bugünkü Çalışma Planım
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div class="solved-badge" id="todaySolvedBadge">0 Soru Çözüldü</div>
-            <div class="progress-bar-container">
-              <div class="progress-bar-fill" id="todayProgressBar"></div>
-            </div>
-            <div class="progress-badge" id="todayProgressPercent">%0</div>
           </div>
         </div>
         <div class="card-body-content">
@@ -1449,6 +1475,10 @@
     });
 
     const chartData = [...denemeList].sort((a,b) => new Date(a.date) - new Date(b.date)).slice(-7);
+    const formatNetDisplay = (value) => {
+      const safeValue = Number(value || 0);
+      return Number(safeValue.toFixed(2)).toString();
+    };
     const maxNet = Math.max(...chartData.map(d => d.net), 10);
     const minNet = 0;
     const measuredWidth = chartContainer.clientWidth;
@@ -1521,7 +1551,7 @@
       value.setAttribute('x', p.x);
       value.setAttribute('y', p.y - 10);
       value.setAttribute('class', 'chart-wave-value');
-      value.textContent = p.net.toFixed(1);
+      value.textContent = formatNetDisplay(p.net);
 
       const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       const pointColor = p.type === 'AYT' ? '#f97316' : '#2dd4bf';
@@ -1535,7 +1565,7 @@
 
       const showTooltip = (event) => {
         const rect = chartContainer.getBoundingClientRect();
-        tooltip.textContent = `${p.title}: ${p.net.toFixed(1)} net`;
+        tooltip.textContent = `${p.title}: ${formatNetDisplay(p.net)} net`;
         tooltip.style.left = `${p.x / width * rect.width}px`;
         tooltip.style.top = `${(p.y / height) * rect.height - 8}px`;
         tooltip.classList.add('visible');
@@ -1921,17 +1951,20 @@
     const goalLabel = document.getElementById('goalProgressLabel');
     const goalSolvedText = document.getElementById('goalSolvedText');
     const goalRemainingText = document.getElementById('goalRemainingText');
+    const goalTargetText = document.getElementById('goalTargetText');
 
     if (!goalFill || !goalLabel || !goalSolvedText || !goalRemainingText) return;
 
-    const dailyGoal = Number(userProfileData.dailyGoal) || 150;
-    const todayTotal = (dataByDateMap[currentDate] || []).reduce((sum, item) => sum + ((item.dogru || 0) + (item.yanlis || 0) + (item.bos || 0)), 0);
-    const percent = Math.min(100, Math.round((todayTotal / dailyGoal) * 100));
-    const remaining = Math.max(0, dailyGoal - todayTotal);
+    const todayEntries = dataByDateMap[currentDate] || [];
+    const totalTarget = todayEntries.reduce((sum, item) => sum + (Number(item.hedef) || 0), 0);
+    const todayTotal = todayEntries.reduce((sum, item) => sum + ((item.dogru || 0) + (item.yanlis || 0) + (item.bos || 0)), 0);
+    const percent = totalTarget > 0 ? Math.min(100, Math.round((todayTotal / totalTarget) * 100)) : 0;
+    const remaining = Math.max(0, totalTarget - todayTotal);
 
     goalFill.style.width = `${percent}%`;
     goalLabel.textContent = `%${percent}`;
-    goalSolvedText.textContent = `${todayTotal}/${dailyGoal} soru`;
+    if (goalTargetText) goalTargetText.textContent = `Bu günün toplam hedefi: ${totalTarget} soru`;
+    goalSolvedText.textContent = `${todayTotal}/${totalTarget} soru`;
     goalRemainingText.textContent = `Kalan ${remaining}`;
   }
 
@@ -2113,14 +2146,16 @@
     }
 
     const totalCount = todayEntries.length;
-    const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+    const totalTarget = todayEntries.reduce((sum, item) => sum + (Number(item.hedef) || 0), 0);
+    const targetPct = totalTarget > 0 ? Math.min(100, Math.round((todaySolved / totalTarget) * 100)) : 0;
 
-    document.getElementById('todayProgressPercent').textContent = `%${pct}`;
-    document.getElementById('todayProgressBar').style.width = `${pct}%`;
-    document.getElementById('todaySolvedBadge').textContent = `${todaySolved} Soru Çözüldü`;
-    document.getElementById('statTodayTask').textContent = `${completedCount}/${totalCount}`;
-    document.getElementById('greetingProgress').textContent = `Bugün ${totalCount} görevden ${completedCount} tanesini tamamladın.`;
-    document.getElementById('heroSubtitle').textContent = totalCount > completedCount 
+    const statTodayTask = document.getElementById('statTodayTask');
+    const greetingProgress = document.getElementById('greetingProgress');
+    const heroSubtitle = document.getElementById('heroSubtitle');
+
+    if (statTodayTask) statTodayTask.textContent = `${completedCount}/${totalCount}`;
+    if (greetingProgress) greetingProgress.textContent = `Bugün ${totalCount} görevden ${completedCount} tanesini tamamladın.`;
+    if (heroSubtitle) heroSubtitle.textContent = totalCount > completedCount 
       ? `Bugün ${completedCount} görevi bitirdin, ${totalCount - completedCount} tane kaldı. Az kaldı, devam!`
       : `Harika! Bugünün tüm görevlerini tamamladın!`;
 
@@ -2160,8 +2195,12 @@
     });
 
     const wPct = weekTotalTasks > 0 ? Math.round((weekCompletedTasks / weekTotalTasks) * 100) : 0;
+    const weeklyTarget = Object.keys(dataByDateMap)
+      .filter(key => weekDateKeys.has(key))
+      .reduce((sum, key) => sum + (dataByDateMap[key] || []).reduce((innerSum, item) => innerSum + (Number(item.hedef) || 0), 0), 0);
     document.getElementById('statWeeklyPercent').textContent = `%${wPct}`;
     document.getElementById('statWeeklySolved').textContent = weekSolved;
+    document.getElementById('statWeeklyTarget').textContent = `Hedef: ${weeklyTarget} soru`;
     document.getElementById('statMonthlySolved').textContent = monthSolved;
 
     renderWeeklyTrend();
@@ -2177,13 +2216,33 @@
     const now = new Date();
     const currentDayIdx = now.getDay() === 0 ? 6 : now.getDay() - 1;
 
-    let weekTotalSolved = 0;
-
-    days.forEach((dayName, idx) => {
+    const currentWeekDates = days.map((_, idx) => {
       const dayDate = new Date(now);
       dayDate.setDate(now.getDate() - currentDayIdx + idx);
-      const dateKey = dayDate.getFullYear() + '-' + String(dayDate.getMonth() + 1).padStart(2, '0') + '-' + String(dayDate.getDate()).padStart(2, '0');
-      const dayTasks = dataByDateMap[dateKey] || [];
+      return {
+        name: days[idx],
+        date: dayDate,
+        key: dayDate.getFullYear() + '-' + String(dayDate.getMonth() + 1).padStart(2, '0') + '-' + String(dayDate.getDate()).padStart(2, '0')
+      };
+    });
+
+    const weekTargetFromTasks = currentWeekDates.reduce((sum, { key }) => {
+      const dayTasks = dataByDateMap[key] || [];
+      return sum + dayTasks.reduce((innerSum, t) => innerSum + (Number(t.hedef) || 0), 0);
+    }, 0);
+    const weekTotalSolved = currentWeekDates.reduce((sum, { key }) => {
+      const dayTasks = dataByDateMap[key] || [];
+      return sum + dayTasks.reduce((daySum, t) => daySum + ((t.dogru || 0) + (t.yanlis || 0) + (t.bos || 0)), 0);
+    }, 0);
+    const overallWeeklyTarget = weekTargetFromTasks;
+    const overallWeeklyRemaining = Math.max(0, overallWeeklyTarget - weekTotalSolved);
+
+    currentWeekDates.forEach(({ name, date, key }) => {
+      const dayTasks = dataByDateMap[key] || [];
+      const dayTargetFromTasks = dayTasks.reduce((sum, t) => sum + (Number(t.hedef) || 0), 0);
+      const daySolved = dayTasks.reduce((sum, t) => sum + ((t.dogru || 0) + (t.yanlis || 0) + (t.bos || 0)), 0);
+      const dayTarget = dayTargetFromTasks;
+      const dayRemaining = Math.max(0, dayTarget - daySolved);
 
       const dayCard = document.createElement('div');
       dayCard.className = 'day-card';
@@ -2191,14 +2250,12 @@
       let tasksHtml = '';
       dayTasks.forEach(t => {
         const cozulen = (t.dogru || 0) + (t.yanlis || 0) + (t.bos || 0);
-        weekTotalSolved += cozulen;
         const hedef = t.hedef || 1;
         const oran = Math.min(Math.round((cozulen / hedef) * 100), 100);
         const isDone = t.manualDone || (cozulen >= t.hedef && t.hedef > 0);
-        
         const kalan = Math.max(0, hedef - cozulen);
         tasksHtml += `
-          <div class="day-task-pill ${isDone ? 'done' : ''}" onclick="openEditModal('${t.id}', '${dateKey}')">
+          <div class="day-task-pill ${isDone ? 'done' : ''}" onclick="openEditModal('${t.id}', '${key}')">
             <div style="display:flex; justify-content:space-between; width:100%;">
               <span>${isDone ? '✓ ' : ''}${escapeHtml(t.ders)}</span>
               <span>${cozulen}/${hedef} Soru</span>
@@ -2222,17 +2279,26 @@
       dayCard.innerHTML = `
         <div class="day-header">
           <div class="day-header-title">
-            <span>${dayDate.getDate()}</span> ${dayName}
+            <span>${date.getDate()}</span> ${name}
           </div>
           <div class="day-badge">${dayTasks.length}</div>
         </div>
+        ${dayTasks.length ? `
+          <div style="font-size:11px; line-height:1.5; color:var(--text-muted); font-weight:700; margin:0 0 10px; padding:8px 10px; border-radius:10px; background:rgba(15,118,110,0.06); border:1px solid var(--border-color);">
+            <div>Toplam hedef: <strong style="color:var(--primary);">${dayTarget} soru</strong></div>
+            <div>Kalan: <strong style="color:${dayRemaining === 0 ? '#15803d' : '#b45309'};">${dayRemaining} soru</strong></div>
+          </div>
+        ` : ''}
         <div>${tasksHtml || '<div style="font-size:13px; color:var(--text-muted); padding:12px 0; text-align:center;">Plan yok</div>'}</div>
-        <button class="add-plan-btn" onclick="openNewModal('${dateKey}')">+ Plan ekle</button>
+        <button class="add-plan-btn" onclick="openNewModal('${key}')">+ Plan ekle</button>
       `;
       grid.appendChild(dayCard);
     });
 
-    document.getElementById('weeklySolvedBadge').textContent = `🗓️ Bu Hafta Toplam: ${weekTotalSolved} Soru`;
+    document.getElementById('weeklySolvedBadge').textContent = `🗓️ Bu Hafta Toplam: ${weekTotalSolved} Soru • Hedef: ${overallWeeklyTarget} • Kalan: ${overallWeeklyRemaining}`;
+
+    const weeklyTargetEl = document.getElementById('statWeeklyTarget');
+    if (weeklyTargetEl) weeklyTargetEl.textContent = `Hedef: ${overallWeeklyTarget} soru`;
   }
 
   window.toggleTaskStatus = function(event, id, dateKey = currentDate) {
