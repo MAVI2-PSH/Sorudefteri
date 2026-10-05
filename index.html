@@ -368,6 +368,18 @@
   }
   .day-task-pill:hover { transform: translateY(-1px); border-color: var(--primary); }
   .day-task-pill.done { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
+
+  /* ===== Ders renkleri ===== */
+  .task-item[style*="--subj"], .day-task-pill[style*="--subj"] { position: relative; overflow: hidden; }
+  .task-item[style*="--subj"] { border-left: 6px solid var(--subj); background-image: linear-gradient(90deg, var(--subj-soft), transparent 55%); }
+  .task-item[style*="--subj"] .task-title { color: var(--subj-text); }
+  .task-item[style*="--subj"] .task-progress-fill { background: var(--subj); }
+  .task-item.completed[style*="--subj"] { background-color: var(--green-bg); }
+  .task-item.completed[style*="--subj"] .task-title { color: var(--green-text); }
+  .task-item.completed[style*="--subj"] .task-progress-fill { background: #22c55e; }
+  .day-task-pill[style*="--subj"] { border-left: 5px solid var(--subj); background-image: linear-gradient(90deg, var(--subj-soft), transparent 60%); }
+  .day-task-pill[style*="--subj"].done { background-color: var(--green-bg); }
+  .subj-dot { display:inline-block; width:9px; height:9px; border-radius:50%; background: var(--subj); margin-right:6px; vertical-align:middle; }
   .day-task-topic { font-size: 11px; font-weight: 600; color: var(--text-muted); line-height: 1.35; overflow-wrap: anywhere; }
   .day-task-results { display: flex; gap: 5px; flex-wrap: wrap; }
   .day-task-results .res-pill { font-size: 11px; padding: 2px 6px; }
@@ -1106,7 +1118,7 @@
   function saveTimerState() {
     const timerState = {
       isRunning: Boolean(timerInterval),
-      baseSeconds: timerSeconds,
+      totalSeconds: timerSeconds,
       startedAt: timerStartedAt
     };
     localStorage.setItem('studyTimerState', JSON.stringify(timerState));
@@ -1126,12 +1138,12 @@
         return;
       }
 
-      timerBaseSeconds = Number(timerState.baseSeconds) || 0;
-      timerSeconds = timerBaseSeconds;
+      timerSeconds = Number(timerState.totalSeconds) || 0;
+      timerBaseSeconds = timerSeconds;
 
       if (timerState.isRunning && timerState.startedAt) {
         const elapsedSeconds = Math.floor((Date.now() - Number(timerState.startedAt)) / 1000);
-        timerSeconds = timerBaseSeconds + elapsedSeconds;
+        timerSeconds = timerSeconds + elapsedSeconds;
         timerStartedAt = Date.now();
         timerBaseSeconds = timerSeconds;
         startTimer();
@@ -1152,20 +1164,14 @@
     if (timerInterval) return;
 
     const savedState = JSON.parse(localStorage.getItem('studyTimerState') || '{}');
-    timerBaseSeconds = Number(savedState.baseSeconds) || timerSeconds;
+    timerBaseSeconds = Number(savedState.totalSeconds) || timerSeconds;
     timerStartedAt = Date.now();
 
     timerInterval = setInterval(() => {
       const elapsedSeconds = Math.floor((Date.now() - timerStartedAt) / 1000);
       timerSeconds = timerBaseSeconds + elapsedSeconds;
       updateTimerDisplay();
-
-      const nextState = {
-        isRunning: true,
-        baseSeconds: timerSeconds,
-        startedAt: Date.now()
-      };
-      localStorage.setItem('studyTimerState', JSON.stringify(nextState));
+      saveTimerState();
     }, 1000);
 
     document.getElementById('timerToggle').textContent = '⏸';
@@ -1178,6 +1184,8 @@
       timerInterval = null;
     }
 
+    const elapsedSeconds = timerStartedAt ? Math.floor((Date.now() - timerStartedAt) / 1000) : 0;
+    timerSeconds = timerBaseSeconds + elapsedSeconds;
     timerBaseSeconds = timerSeconds;
     timerStartedAt = null;
     document.getElementById('timerToggle').textContent = '▶';
@@ -1213,6 +1221,7 @@
     const isDark = document.body.classList.contains('dark-mode');
     document.getElementById('btnToggleTheme').textContent = isDark ? '☀️' : '🌙';
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    if (currentUser) { render(); if (weeklySection.style.display !== 'none') renderWeeklyView(); }
     if (currentUser) {
       setDoc(doc(db, "users", currentUser.uid), { theme: isDark ? 'dark' : 'light' }, { merge: true });
     }
@@ -1348,8 +1357,8 @@
       row.dataset.total = sub.total;
       row.innerHTML = `
         <span class="sub-name">${sub.name} <span style="font-weight:500; opacity:0.7;">(${sub.total} S)</span></span>
-        <input type="number" min="0" max="${sub.total}" value="0" placeholder="Yanlış" class="form-control sub-y" aria-label="${sub.name} yanlış sayısı">
-        <input type="number" min="0" max="${sub.total}" value="0" placeholder="Boş" class="form-control sub-b" aria-label="${sub.name} boş sayısı">
+        <input type="number" inputmode="numeric" min="0" max="${sub.total}" value="" placeholder="0" class="form-control sub-y" aria-label="${sub.name} yanlış sayısı">
+        <input type="number" inputmode="numeric" min="0" max="${sub.total}" value="" placeholder="0" class="form-control sub-b" aria-label="${sub.name} boş sayısı">
       `;
       container.appendChild(row);
     });
@@ -2100,6 +2109,7 @@
 
         const card = document.createElement('div');
         card.className = `task-item ${isDone ? 'completed' : 'pending'}`;
+        card.setAttribute('style', subjectColorStyle(entry.ders));
         const kalan = Math.max(0, hedef - cozulen);
         
         card.innerHTML = `
@@ -2255,9 +2265,9 @@
         const isDone = t.manualDone || (cozulen >= t.hedef && t.hedef > 0);
         const kalan = Math.max(0, hedef - cozulen);
         tasksHtml += `
-          <div class="day-task-pill ${isDone ? 'done' : ''}" onclick="openEditModal('${t.id}', '${key}')">
+          <div class="day-task-pill ${isDone ? 'done' : ''}" style="${subjectColorStyle(t.ders)}" onclick="openEditModal('${t.id}', '${key}')">
             <div style="display:flex; justify-content:space-between; width:100%;">
-              <span>${isDone ? '✓ ' : ''}${escapeHtml(t.ders)}</span>
+              <span><i class="subj-dot"></i>${isDone ? '✓ ' : ''}${escapeHtml(t.ders)}</span>
               <span>${cozulen}/${hedef} Soru</span>
             </div>
             ${t.konu ? `<div class="day-task-topic">Konu: ${escapeHtml(t.konu)}</div>` : ''}
@@ -2552,6 +2562,31 @@
       render();
     }
   });
+
+  const subjectHues = {
+    'matematik': 215, 'geometri': 245, 'fizik': 275, 'kimya': 150, 'biyoloji': 95,
+    'fen': 170, 'fen bilimleri': 170, 'türkçe': 0, 'edebiyat': 330, 'paragraf': 15,
+    'tarih': 30, 'coğrafya': 120, 'felsefe': 290, 'din': 55, 'din kültürü': 55,
+    'sosyal': 40, 'sosyal bilgiler': 40, 'ingilizce': 195, 'yabancı dil': 195, 'deneme': 350
+  };
+  function subjectColorStyle(ders) {
+    const name = (ders || '').toLocaleLowerCase('tr-TR').trim();
+    let hue = subjectHues[name];
+    if (hue === undefined) {
+      const key = Object.keys(subjectHues).find(k => k.length > 3 && name.includes(k));
+      if (key) hue = subjectHues[key];
+    }
+    if (hue === undefined) {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+      hue = h;
+    }
+    const dark = document.body.classList.contains('dark-mode');
+    const main = `hsl(${hue}, 70%, ${dark ? 60 : 45}%)`;
+    const soft = `hsla(${hue}, 70%, 50%, ${dark ? 0.16 : 0.10})`;
+    const text = `hsl(${hue}, ${dark ? 75 : 70}%, ${dark ? 72 : 32}%)`;
+    return `--subj:${main}; --subj-soft:${soft}; --subj-text:${text};`;
+  }
 
   function escapeHtml(str) {
     if (!str) return '';
