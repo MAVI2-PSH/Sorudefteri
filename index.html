@@ -356,6 +356,15 @@
   .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; font-weight: 700; font-size: 13px; border-radius: 10px; cursor: pointer; color: var(--text-muted); }
   .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
 
+  .week-nav { display:flex; align-items:center; gap:6px; background:var(--card-bg); border:1px solid var(--border-color); border-radius:14px; padding:4px; }
+  .week-nav button { background:transparent; border:none; color:var(--primary); font-weight:800; font-size:18px; line-height:1; width:36px; height:36px; border-radius:10px; cursor:pointer; }
+  .week-nav button:hover { background:rgba(15,118,110,0.10); }
+  .week-nav #weekTodayBtn { width:auto; padding:0 12px; font-size:12px; border-left:1px solid var(--border-color); border-radius:0 10px 10px 0; margin-left:2px; }
+  .week-nav #weekTodayBtn:disabled { opacity:.4; cursor:default; background:transparent; }
+  .week-nav-center { display:flex; flex-direction:column; align-items:center; min-width:150px; }
+  .week-nav-center input { background:transparent; border:none; text-align:center; font-weight:800; color:var(--primary); font-size:13px; cursor:pointer; width:100%; padding:2px 4px; }
+  .week-nav-sub { font-size:10px; font-weight:700; color:var(--text-muted); }
+  .day-card.is-today { border-color:var(--primary); box-shadow:0 0 0 1px var(--primary) inset; }
   .week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
   .day-card { background: var(--card-bg); border-radius: 20px; border: 1.5px solid var(--border-color); padding: 18px; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
   .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
@@ -781,7 +790,15 @@
 
     <div id="weeklySection" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap:wrap; gap:10px;">
-        <input type="text" id="weekDatePicker" style="background:var(--card-bg); border:1px solid var(--border-color); padding:8px 14px; border-radius:12px; font-weight:700; color:var(--primary); font-size:13px;" readonly>
+        <div class="week-nav">
+          <button type="button" id="weekPrevBtn" aria-label="Önceki hafta" title="Önceki hafta">‹</button>
+          <div class="week-nav-center">
+            <input type="text" id="weekDatePicker" readonly aria-label="Hafta seç">
+            <span class="week-nav-sub" id="weekNavSub"></span>
+          </div>
+          <button type="button" id="weekNextBtn" aria-label="Sonraki hafta" title="Sonraki hafta">›</button>
+          <button type="button" id="weekTodayBtn" title="Bu haftaya dön">Bu Hafta</button>
+        </div>
         <div id="weeklySolvedBadge" style="background:var(--card-bg); border:1px solid var(--border-color); padding:8px 14px; border-radius:12px; font-weight:800; color:var(--primary); font-size:13px;">🗓️ Bu Hafta Toplam: 0 Soru</div>
       </div>
       <div class="week-grid" id="weekGridContainer"></div>
@@ -2218,13 +2235,31 @@
     renderDenemePanel();
   }
 
+  let weekViewDate = new Date();
+  let weekPickerInstance = null;
+  function startOfWeek(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    x.setDate(x.getDate() - (x.getDay() === 0 ? 6 : x.getDay() - 1));
+    return x;
+  }
+  function isViewingCurrentWeek() {
+    return startOfWeek(weekViewDate).getTime() === startOfWeek(new Date()).getTime();
+  }
+  function shiftWeek(n) {
+    const d = startOfWeek(weekViewDate);
+    d.setDate(d.getDate() + n * 7);
+    weekViewDate = d;
+    renderWeeklyView();
+  }
+
   function renderWeeklyView() {
     const grid = document.getElementById('weekGridContainer');
     grid.innerHTML = '';
 
     const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
-    const now = new Date();
+    const now = new Date(weekViewDate);
     const currentDayIdx = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    const todayStr = todayKey();
 
     const currentWeekDates = days.map((_, idx) => {
       const dayDate = new Date(now);
@@ -2255,7 +2290,7 @@
       const dayRemaining = Math.max(0, dayTarget - daySolved);
 
       const dayCard = document.createElement('div');
-      dayCard.className = 'day-card';
+      dayCard.className = 'day-card' + (key === todayStr ? ' is-today' : '');
 
       let tasksHtml = '';
       dayTasks.forEach(t => {
@@ -2305,10 +2340,26 @@
       grid.appendChild(dayCard);
     });
 
-    document.getElementById('weeklySolvedBadge').textContent = `🗓️ Bu Hafta Toplam: ${weekTotalSolved} Soru • Hedef: ${overallWeeklyTarget} • Kalan: ${overallWeeklyRemaining}`;
+    const first = currentWeekDates[0].date, last = currentWeekDates[6].date;
+    const fmt = (d, y) => d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', ...(y ? { year: 'numeric' } : {}) });
+    const picker = document.getElementById('weekDatePicker');
+    const rangeText = `${fmt(first, first.getFullYear() !== last.getFullYear())} – ${fmt(last, true)}`;
+    if (weekPickerInstance) weekPickerInstance.setDate(first, false);
+    picker.value = rangeText;
+    if (weekPickerInstance && weekPickerInstance.altInput) weekPickerInstance.altInput.value = rangeText;
+    const cur = isViewingCurrentWeek();
+    const prevWeekStart = startOfWeek(new Date()); 
+    const diff = Math.round((first - prevWeekStart) / 604800000);
+    document.getElementById('weekNavSub').textContent = diff === 0 ? 'Bu hafta' : diff === -1 ? 'Geçen hafta' : diff === 1 ? 'Gelecek hafta' : (diff < 0 ? `${-diff} hafta önce` : `${diff} hafta sonra`);
+    document.getElementById('weekTodayBtn').disabled = cur;
 
-    const weeklyTargetEl = document.getElementById('statWeeklyTarget');
-    if (weeklyTargetEl) weeklyTargetEl.textContent = `Hedef: ${overallWeeklyTarget} soru`;
+    const label = cur ? 'Bu Hafta' : 'Seçili Hafta';
+    document.getElementById('weeklySolvedBadge').textContent = `🗓️ ${label} Toplam: ${weekTotalSolved} Soru • Hedef: ${overallWeeklyTarget} • Kalan: ${overallWeeklyRemaining}`;
+
+    if (cur) {
+      const weeklyTargetEl = document.getElementById('statWeeklyTarget');
+      if (weeklyTargetEl) weeklyTargetEl.textContent = `Hedef: ${overallWeeklyTarget} soru`;
+    }
   }
 
   window.toggleTaskStatus = function(event, id, dateKey = currentDate) {
@@ -2552,16 +2603,20 @@
     taskModalOverlay.classList.remove('open');
   });
 
-  flatpickr("#weekDatePicker", {
+  weekPickerInstance = flatpickr("#weekDatePicker", {
     defaultDate: "today",
     dateFormat: "Y-m-d",
-    altInput: true,
-    altFormat: "j F Y, l",
-    onChange: function(selectedDates, dateStr) {
-      currentDate = dateStr;
-      render();
+    weekNumbers: true,
+    disableMobile: true,
+    onChange: function(selectedDates) {
+      if (!selectedDates.length) return;
+      weekViewDate = selectedDates[0];
+      renderWeeklyView();
     }
   });
+  document.getElementById('weekPrevBtn').addEventListener('click', () => shiftWeek(-1));
+  document.getElementById('weekNextBtn').addEventListener('click', () => shiftWeek(1));
+  document.getElementById('weekTodayBtn').addEventListener('click', () => { weekViewDate = new Date(); renderWeeklyView(); });
 
   const subjectHues = {
     'matematik': 215, 'geometri': 245, 'fizik': 275, 'kimya': 150, 'biyoloji': 95,
