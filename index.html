@@ -1045,7 +1045,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, enableIndexedDbPersistence, doc, setDoc, onSnapshot, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   if (window.flatpickr) { flatpickr.localize(flatpickr.l10ns.tr); }
 
@@ -1061,6 +1061,18 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+   
+  enableIndexedDbPersistence(db)
+    .then(() => {
+      console.log("Çevrimdışı veritabanı desteği aktif!");
+    })
+    .catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.warn("Çevrimdışı mod yalnızca tek bir sekmede çalışabilir.");
+      } else if (err.code === 'unimplemented') {
+        console.warn("Tarayıcınız çevrimdışı önbelleği desteklemiyor.");
+      }
+    });
 
   let currentUser = null;
   let userProfileData = {};
