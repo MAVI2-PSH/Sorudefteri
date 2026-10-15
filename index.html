@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Soru Defteri & Çalışma Takibi</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f766e">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Soru Defteri">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -2661,6 +2668,24 @@
     div.textContent = str;
     return div.innerHTML;
   }
+</script>
+<script>
+// Service worker kaydı (çevrimdışı çalışma)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(console.error));
+}
+// Yan menüye "Uygulamayı Yükle" öğesi (Android/Chrome)
+let deferredInstall;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredInstall = e;
+  const menu = document.querySelector('.nav-menu');
+  if (!menu || document.getElementById('btnInstallApp')) return;
+  const a = document.createElement('a');
+  a.className = 'nav-item'; a.id = 'btnInstallApp';
+  a.innerHTML = '<span class="icon">📲</span> Uygulamayı Yükle';
+  a.onclick = async () => { deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; a.remove(); };
+  menu.appendChild(a);
+});
 </script>
 </body>
 </html>
